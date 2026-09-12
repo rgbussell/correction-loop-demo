@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from clloop.partition import CaseRecord, Partition, design_partition, fov_group
+from clloop.partition import CaseRecord, design_partition, fov_group
 
 REPO = Path(__file__).resolve().parents[1]
 

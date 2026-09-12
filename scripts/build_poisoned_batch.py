@@ -118,7 +118,7 @@ def main() -> int:
         + "\n"
     )
     print(f"wrote {len(audit)} poisoned references -> {out_dir}")
-    print(f"audit record -> manifests/poison.json")
+    print("audit record -> manifests/poison.json")
     return 0
 
 

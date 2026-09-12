@@ -15,7 +15,7 @@
         "relabel": 11
       },
       "n_levels": 11,
-      "seconds": 15.1
+      "seconds": 16.6
     },
     {
       "case_id": "GL124",
@@ -26,7 +26,7 @@
         "relabel": 10
       },
       "n_levels": 10,
-      "seconds": 15.1
+      "seconds": 15.8
     },
     {
       "case_id": "verse096",
@@ -37,7 +37,7 @@
         "relabel": 18
       },
       "n_levels": 18,
-      "seconds": 11.3
+      "seconds": 13.1
     },
     {
       "case_id": "verse135",
@@ -48,7 +48,7 @@
         "relabel": 18
       },
       "n_levels": 18,
-      "seconds": 10.5
+      "seconds": 11.4
     },
     {
       "case_id": "verse254",
@@ -72,7 +72,7 @@
         "boundary": 1
       },
       "n_levels": 6,
-      "seconds": 10.7
+      "seconds": 13.2
     },
     {
       "case_id": "verse542",
@@ -85,7 +85,7 @@
         "boundary": 1
       },
       "n_levels": 18,
-      "seconds": 93.1
+      "seconds": 79.7
     },
     {
       "case_id": "verse557",
@@ -96,7 +96,7 @@
         "relabel": 17
       },
       "n_levels": 17,
-      "seconds": 87.8
+      "seconds": 67.4
     },
     {
       "case_id": "verse581",
@@ -107,7 +107,7 @@
         "relabel": 23
       },
       "n_levels": 23,
-      "seconds": 159.8
+      "seconds": 120.5
     },
     {
       "case_id": "verse594",
@@ -118,7 +118,7 @@
         "relabel": 9
       },
       "n_levels": 9,
-      "seconds": 44.6
+      "seconds": 34.2
     },
     {
       "case_id": "verse641",
@@ -129,7 +129,7 @@
         "relabel": 9
       },
       "n_levels": 9,
-      "seconds": 26.2
+      "seconds": 24.0
     },
     {
       "case_id": "verse807",
@@ -140,7 +140,7 @@
         "relabel": 8
       },
       "n_levels": 8,
-      "seconds": 48.4
+      "seconds": 39.6
     },
     {
       "case_id": "verse823",
@@ -151,7 +151,7 @@
         "relabel": 24
       },
       "n_levels": 24,
-      "seconds": 195.0
+      "seconds": 189.5
     }
   ]
 }

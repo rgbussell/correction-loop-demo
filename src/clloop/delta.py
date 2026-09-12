@@ -83,6 +83,7 @@ class LevelDelta:
     kind: str  # accepted | boundary | relabel | missing | spurious
     apl_mm: float
     detail: str = ""
+    other: int = 0  # for `relabel`: the label auto used instead (0 otherwise)
 
 
 @dataclass
@@ -144,35 +145,75 @@ def score_case(
     apl_total = 0.0
     final_labels = [int(v) for v in np.unique(final) if v in VERT_LABELS]
     auto_labels = {int(v) for v in np.unique(auto) if v in VERT_LABELS}
+    # Per-label bounding boxes of `auto`, computed once. The relabel-candidate
+    # search then works inside union crops instead of full-volume equality
+    # tests per candidate — exact (IoU needs both masks whole, and the union
+    # box contains both wholly) and an order of magnitude faster on volumes
+    # where a weak model scatters many labels.
+    auto_boxes = ndimage.find_objects(auto, max_label=max(VERT_LABELS))
 
+    margin = int(np.ceil(tol_mm / min(spacing))) + 2
     for lab in final_labels:
         m_f = final == lab
-        m_a = auto == lab
-        crop = _pair_crop(m_f, m_a, margin=int(np.ceil(tol_mm / min(spacing))) + 2)
-        m_f_c, m_a_c = m_f[crop], m_a[crop]
+        # APL is exact on the FINAL label's own box + a tol margin: an auto
+        # boundary voxel outside that box is provably farther than tol from
+        # every final boundary voxel inside it, so excluding it cannot change
+        # the `distance > tol` predicate. This is what makes scoring fast even
+        # when a weak model scatters a label across the volume — the scattered
+        # remainder is already known to be "too far" without an EDT over it.
+        f_box = ndimage.find_objects(m_f.astype(np.int8), max_label=1)[0]
+        f_crop = tuple(
+            slice(max(0, sl.start - margin), min(dim, sl.stop + margin))
+            for sl, dim in zip(f_box, m_f.shape)
+        )
+        m_f_c = m_f[f_crop]
+        m_a_c = auto[f_crop] == lab
         b_f = _boundary(m_f_c)
         d_a = _distance_to(_boundary(m_a_c), spacing)
         added = int((d_a[b_f] > tol_mm).sum())
         apl = added * step
         apl_total += apl
 
-        inter_same = int((m_f_c & m_a_c).sum())
-        union_same = int((m_f_c | m_a_c).sum())
-        iou_same = inter_same / union_same if union_same else 0.0
+        # IoU with the same label needs both masks whole; booleans over the
+        # union box are cheap — only the EDT above needed restricting.
+        a_box = auto_boxes[lab - 1]
+        if a_box is None:
+            iou_same = 0.0
+        else:
+            u = tuple(
+                slice(min(a.start, b.start), max(a.stop, b.stop))
+                for a, b in zip(f_box, a_box)
+            )
+            m_f_u = m_f[u]
+            m_a_u = auto[u] == lab
+            inter_same = int((m_f_u & m_a_u).sum())
+            union_same = int((m_f_u | m_a_u).sum())
+            iou_same = inter_same / union_same if union_same else 0.0
         if apl == 0.0 and iou_same > 0:
             levels.append(LevelDelta(lab, "accepted", 0.0))
             continue
         # Does the shape exist in `auto` under some other single name?
         overlap_labels = np.unique(auto[m_f])
         best_other, best_iou = 0, 0.0
+        f_box = ndimage.find_objects(m_f.astype(np.int8), max_label=1)[0]
         for cand in (int(v) for v in overlap_labels if v in VERT_LABELS and int(v) != lab):
-            m_c = auto == cand
-            iou = int((m_f & m_c).sum()) / int((m_f | m_c).sum())
+            c_box = auto_boxes[cand - 1]
+            if c_box is None:
+                continue
+            u = tuple(
+                slice(min(a.start, b.start), max(a.stop, b.stop))
+                for a, b in zip(f_box, c_box)
+            )
+            m_f_u = m_f[u]
+            m_c_u = auto[u] == cand
+            iou = int((m_f_u & m_c_u).sum()) / int((m_f_u | m_c_u).sum())
             if iou > best_iou:
                 best_other, best_iou = cand, iou
         if best_iou >= relabel_iou and best_iou > iou_same:
             levels.append(
-                LevelDelta(lab, "relabel", apl, f"auto called it {best_other} (IoU {best_iou:.2f})")
+                LevelDelta(lab, "relabel", apl,
+                           f"auto called it {best_other} (IoU {best_iou:.2f})",
+                           other=best_other)
             )
         elif iou_same > 0:
             levels.append(LevelDelta(lab, "boundary", apl))
@@ -180,9 +221,12 @@ def score_case(
             levels.append(LevelDelta(lab, "missing", apl))
 
     for lab in sorted(auto_labels - set(final_labels)):
-        m_a = auto == lab
+        c_box = auto_boxes[lab - 1]
+        if c_box is None:
+            continue
+        m_a = auto[c_box] == lab
         # spurious only if the shape isn't final's anatomy under another name
-        covered = int((final[m_a] > 0).sum()) / int(m_a.sum())
+        covered = int((final[c_box][m_a] > 0).sum()) / int(m_a.sum())
         if covered < 0.5:
             b_a = _boundary(m_a)
             levels.append(LevelDelta(lab, "spurious", int(b_a.sum()) * step, "delete"))

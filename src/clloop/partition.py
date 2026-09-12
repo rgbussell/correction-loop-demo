@@ -25,9 +25,7 @@ from (dataset, seed) alone.
 
 from __future__ import annotations
 
-import json
 import random
-from collections import Counter
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 

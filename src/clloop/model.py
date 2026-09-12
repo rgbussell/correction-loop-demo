@@ -15,7 +15,6 @@ function with rehearsal_frac=0.
 from __future__ import annotations
 
 import random
-from pathlib import Path
 
 import numpy as np
 import torch

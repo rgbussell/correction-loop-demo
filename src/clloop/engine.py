@@ -9,10 +9,12 @@ A round is the unit of the whole demo:
 Round 0 is the special case: no arrivals yet, just the initial-pool baseline
 and its evaluation — the incumbent every later round is measured against.
 
-W2 NOTE — curation here is a deliberate stub: `curate_accept_all` admits the
-whole batch and says so in the round record. The three refusals and the
-two-null promotion gate are W3; the engine records enough per-round evidence
-(deltas, mix, eval) that W3 slots in as a policy swap, not a rewrite.
+Curation and promotion are real as of W3: the arriving batch is screened for
+the enumeration-poison signature (a refused batch trains nothing and the
+incumbent stands), training cohorts are checked against sequestration, and a
+candidate is promoted only past the do-nothing null and the forgetting gate —
+`incumbent_pointer` follows PROMOTION, not time, so a refused or failed round
+never becomes the next round's teacher.
 """
 
 from __future__ import annotations
@@ -26,6 +28,12 @@ import torch
 from scipy import ndimage
 
 from .delta import score_case
+from .gates import (
+    assert_sequestration,
+    check_forgetting,
+    decide_promotion,
+    screen_batch,
+)
 from .model import fold_labels, make_model, make_training_list, predict, train
 from .preprocess import load_case
 
@@ -91,13 +99,16 @@ def evaluate_on_test(
     return {"aggregate": agg, "per_case": per_case}
 
 
-def curate_accept_all(batch_ids: list[str]) -> dict:
-    """W2 stub. Admits everything and is honest about it in the record."""
-    return {
-        "policy": "accept_all (W2 stub — refusals and nulls land in W3)",
-        "admitted": sorted(batch_ids),
-        "refused": [],
-    }
+def incumbent_pointer(repo: Path, k: int) -> Path:
+    """The last PROMOTED model before round k — a refused round does not
+    advance the incumbent, so the pointer follows promotion, not time."""
+    for j in range(k - 1, -1, -1):
+        rec_p = repo / "outputs" / "rounds" / f"round{j}" / "round.json"
+        if rec_p.is_file():
+            rec = json.loads(rec_p.read_text())
+            if j == 0 or rec.get("promotion", {}).get("promoted"):
+                return repo / "outputs" / "rounds" / f"round{j}" / "model.pt"
+    raise FileNotFoundError("no promoted incumbent found — run round 0 first")
 
 
 def run_round(
@@ -141,9 +152,11 @@ def run_round(
         poisoned_round = (k - 1) == part["poisoned_batch_index"] and serve_poisoned
         record["arrival"] = {"batch_index": k - 1, "n": len(batch_ids),
                              "served_poisoned": poisoned_round}
-        prev = repo / "outputs" / "rounds" / f"round{k - 1}"
-        init_state = torch.load(prev / "model.pt", map_location=device,
-                                weights_only=True)
+        inc_path = incumbent_pointer(repo, k)
+        record["incumbent"] = str(inc_path.relative_to(repo))
+        init_state = torch.load(inc_path, map_location=device, weights_only=True)
+        inc_round = json.loads((inc_path.parent / "round.json").read_text())
+        incumbent_eval = inc_round["eval"]
 
         # 1. predict the arriving batch with the INCUMBENT, score the deltas
         import nibabel as nib
@@ -163,23 +176,56 @@ def run_round(
             native_pred = _to_native(pred, native_ref.shape)
             d = score_case(native_pred, fold_labels(native_ref.astype(np.int16)),
                            tuple(rec_c["spacing_mm"]))
-            deltas.append({"case_id": cid, "apl_mm": d.apl_mm,
-                           "surface_dice": d.surface_dice, "kind": d.kind})
+            deltas.append({
+                "case_id": cid, "apl_mm": d.apl_mm,
+                "surface_dice": d.surface_dice, "kind": d.kind,
+                "level_kinds": d.kinds(),
+                "level_offsets": [lv.label - lv.other for lv in d.levels
+                                  if lv.kind == "relabel" and lv.other],
+            })
         record["deltas"] = deltas
         (out_dir / "deltas.json").write_text(json.dumps(deltas, indent=2) + "\n")
 
-        # 2. curate (W2 stub) + 3. retrain with rehearsal
-        curation = curate_accept_all(batch_ids)
-        record["curation"] = curation
+        # 2. CURATE — the refusals (W3)
+        screen = screen_batch(deltas)
+        record["curation"] = {
+            "policy": "delta-screen (enumeration-signature refusal) + sequestration",
+            "admitted": screen.admitted,
+            "refused": screen.refused,
+            "refusal_reason": screen.refusal_reason,
+            "evidence": screen.evidence,
+        }
         seen = list(pool)
         for j in range(k - 1):
-            seen += part["arrival_batches"][j]
-        train_ids, mix = make_training_list(curation["admitted"], seen,
+            prev_rec = repo / "outputs" / "rounds" / f"round{j + 1}" / "round.json"
+            if prev_rec.is_file():
+                seen += json.loads(prev_rec.read_text())["curation"].get("admitted", [])
+
+        if screen.batch_refused:
+            # No training toward poisoned references. The incumbent stands;
+            # the round records the refusal and carries the incumbent's eval.
+            record["training"] = {"ids": [], "mix": {"n_new": 0, "n_rehearsal": 0,
+                                  "note": "batch refused — incumbent stands"}}
+            record["loss_final"] = None
+            record["eval"] = incumbent_eval
+            record["promotion"] = {
+                "promoted": False,
+                "reasons": [f"batch refused at curation: {screen.refusal_reason}"],
+                "evidence": screen.evidence,
+            }
+            torch.save(init_state, out_dir / "model.pt")  # the standing incumbent
+            record["seconds"] = round(time.time() - t0, 1)
+            (out_dir / "round.json").write_text(json.dumps(record, indent=2) + "\n")
+            return record
+
+        # 3. retrain with rehearsal (candidate arm)
+        train_ids, mix = make_training_list(screen.admitted, seen,
                                             rehearsal_frac=rehearsal_frac, seed=seed + k)
+        assert_sequestration(train_ids, test_ids)
         record["training"] = {"ids": train_ids, "mix": mix}
         data = {}
         for cid in train_ids:
-            is_new_poisoned = poisoned_round and cid in set(curation["admitted"])
+            is_new_poisoned = poisoned_round and cid in set(screen.admitted)
             data[cid] = load_folded(cid, is_new_poisoned)
         model, losses = train(data, iters=iters, seed=seed + k, device=device,
                               init_state=init_state)
@@ -190,6 +236,15 @@ def run_round(
     ev = evaluate_on_test(model, test_ids, cache_dir, data_root, by_id, device=device)
     record["eval"] = ev["aggregate"]
     (out_dir / "eval_per_case.json").write_text(json.dumps(ev["per_case"], indent=2) + "\n")
+
+    # 4. PROMOTE — only past the nulls (round 0 is the founding incumbent)
+    if k > 0:
+        forgetting = check_forgetting(incumbent_eval, ev["aggregate"])
+        decision = decide_promotion(incumbent_eval, ev["aggregate"],
+                                    forgetting=forgetting)
+        record["promotion"] = {"promoted": decision.promoted,
+                               "reasons": decision.reasons,
+                               "evidence": decision.evidence}
     record["seconds"] = round(time.time() - t0, 1)
     (out_dir / "round.json").write_text(json.dumps(record, indent=2) + "\n")
     return record
