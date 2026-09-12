@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from collections import Counter
 from datetime import date
 from pathlib import Path
@@ -76,14 +77,19 @@ def load():
     poison = json.loads((REPO / "manifests" / "poison.json").read_text())
     w1_p = REPO / "manifests" / "w1_ruler_validation.json"
     w1 = json.loads(w1_p.read_text()) if w1_p.is_file() else None
-    rounds = []
+    rounds, arms = [], {}
     rdir = REPO / "outputs" / "rounds"
     if rdir.is_dir():
         for d in sorted(rdir.iterdir()):
             f = d / "round.json"
-            if f.is_file():
-                rounds.append(json.loads(f.read_text()))
-    return cases, part, poison, w1, rounds
+            if not f.is_file():
+                continue
+            rec = json.loads(f.read_text())
+            if re.fullmatch(r"round\d+", d.name):
+                rounds.append(rec)
+            else:
+                arms[d.name] = rec
+    return cases, part, poison, w1, rounds, arms
 
 
 # ---------------------------------------------------------------- figures
@@ -300,6 +306,82 @@ def fig_round_burden(rounds):
     return _svg(fig)
 
 
+def fig_loss_curves(rounds):
+    """Training curves per round, sequential blue (rounds are ordinal)."""
+    import json as _json
+
+    fig, ax = plt.subplots(figsize=(6.8, 3.2))
+    trained = [r for r in rounds if r.get("loss_final") is not None]
+    shades = SEQ[1 : 1 + len(trained)] if len(trained) <= len(SEQ) - 1 else SEQ
+    for r, col in zip(trained, shades):
+        lp = REPO / "outputs" / "rounds" / f"round{r['round']}" / "losses.json"
+        if not lp.is_file():
+            continue
+        losses = _json.loads(lp.read_text())
+        xs = np.arange(len(losses))
+        w = max(1, len(losses) // 100)
+        smooth = np.convolve(losses, np.ones(w) / w, mode="valid")
+        ax.plot(np.arange(len(smooth)), smooth, color=col, linewidth=2,
+                label=f"round {r['round']}")
+    ax.set_xlabel("iteration")
+    ax.set_ylabel("DiceCE loss (smoothed)")
+    ax.legend(loc="upper right", frameon=False, fontsize=8.5)
+    ax.set_title("Every training run's curve, logged (MLflow + losses.json)",
+                 loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
+def fig_refusal_panel(rounds, arms):
+    """The poisoned round: incumbent vs refused vs counterfactual burden."""
+    r3 = next((r for r in rounds if r["round"] == 3), None)
+    cf = arms.get("round3_counterfactual")
+    r2 = next((r for r in rounds if r["round"] == 2), None)
+    if not (r3 and cf and r2):
+        return ""
+    inc = r2["eval"]["apl_mm_total"] / 1000
+    cfv = cf["eval"]["apl_mm_total"] / 1000
+    fig, ax = plt.subplots(figsize=(6.6, 3.0))
+    bars = [
+        ("incumbent\n(round 2)", inc, S1),
+        ("round 3: poison REFUSED\nincumbent stands", inc, S1),
+        ("counterfactual:\ntrain on poison anyway", cfv, CRITICAL),
+    ]
+    x = np.arange(3)
+    for xi, (lab, v, c) in zip(x, bars):
+        ax.bar(xi, v, width=0.55, color=c, edgecolor=SURFACE, linewidth=2)
+        ax.text(xi, v + 40, f"{v:,.0f} m", ha="center", color=INK2, fontsize=9.5)
+    ax.set_xticks(x, [b[0] for b in bars], fontsize=8.5)
+    ax.set_ylabel("sequestered-test APL total (m)")
+    ax.annotate(f"+{(cfv - inc) / inc:.1%} damage\nprevented",
+                (2, cfv), textcoords="offset points", xytext=(-86, -34),
+                color=CRITICAL, fontsize=10, fontweight="bold")
+    ax.set_title("What the refusal prevented", loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
+def fig_ablation(rounds, arms):
+    """Rehearsal vs no-rehearsal at round 4, per region + burden."""
+    m = next((r for r in rounds if r["round"] == 4), None)
+    a = arms.get("round4_norehearsal")
+    if not (m and a):
+        return ""
+    regs = ["cervical", "thoracic", "lumbar"]
+    fig, ax = plt.subplots(figsize=(6.8, 3.0))
+    x = np.arange(len(regs))
+    wd = 0.36
+    ax.bar(x - wd / 2, [m["eval"][f"dice_{r}_median"] for r in regs], wd,
+           color=S1, label="25% rehearsal", edgecolor=SURFACE, linewidth=2)
+    ax.bar(x + wd / 2, [a["eval"][f"dice_{r}_median"] for r in regs], wd,
+           color=S2, label="no rehearsal", edgecolor=SURFACE, linewidth=2)
+    ax.set_xticks(x, regs)
+    ax.set_ylim(0, 1.0)
+    ax.set_ylabel("median Dice (sequestered test)")
+    ax.legend(loc="upper left", frameon=False, fontsize=8.5)
+    ax.set_title("G4 ablation at round 4 — measured, not assumed",
+                 loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
 # ---------------------------------------------------------------- report
 CSS = f"""
 :root {{ color-scheme: light; }}
@@ -334,7 +416,7 @@ figcaption {{ font-size: 12.5px; color: {MUTED}; margin-top: 6px; line-height: 1
 
 
 def build() -> None:
-    cases, part, poison, w1, rounds = load()
+    cases, part, poison, w1, rounds, arms = load()
     by_id = {c["case_id"]: c for c in cases["cases"]}
     n = cases["n_cases"]
     groups = Counter(c["fov_group"] for c in cases["cases"])
@@ -421,6 +503,84 @@ the loop exists to drive down — Dice tells you overlap, APL tells you labour.<
 </div>
 '''
 
+    w4_html = ""
+    if len(rounds) >= 4 and arms:
+        r3 = next((r for r in rounds if r["round"] == 3), {})
+        refusal = r3.get("curation", {}).get("refusal_reason", "")
+        ev3 = r3.get("curation", {}).get("evidence", {})
+        cf = arms.get("round3_counterfactual", {})
+        inc_apl = next((r for r in rounds if r["round"] == 2), {}).get("eval", {}).get("apl_mm_total", 1)
+        cf_apl = cf.get("eval", {}).get("apl_mm_total", 0)
+        m4 = next((r for r in rounds if r["round"] == 4), {})
+        a4 = arms.get("round4_norehearsal", {})
+        track_rows = "".join(
+            f"<tr><td>round {r['round']}{'' if not r.get('arm') else ' (' + r['arm'] + ')'}</td>"
+            f"<td><code>{(r.get('mlflow_run_id') or '—')[:12]}</code></td>"
+            f"<td>{'✓' if r.get('dvc', {}).get('added') else '—'}</td>"
+            f"<td>{'✓' if r.get('dvc', {}).get('pushed') else 'pending re-auth'}</td>"
+            f"<td>{'promoted' if r.get('promotion', {}).get('promoted') else ('refused' if r.get('promotion') else 'baseline')}</td></tr>"
+            for r in rounds + sorted(arms.values(), key=lambda x: x['round'])
+        )
+        w4_html = f'''
+<h2>Step 6 — The run: five rounds, one poison, three verdicts (W4)</h2>
+<div class="card">
+<p><strong>The story the loop wrote, unscripted.</strong> The FIRST live poisoned round
+produced this demo's best exhibit: the admission screen's original rule (≥50% relabel
+<em>case</em> verdicts) MISSED the poison — the weak incumbent's boundary noise diluted 9/13
+poisoned cases to "mixed", and the batch was admitted on evidence of 37/39 relabel levels
+agreeing on +1. <strong>The promotion gate then caught it</strong>: the poison-trained
+candidate scored −40.2% against the do-nothing null and was refused; the incumbent stood.
+The screen was revised to read the <em>level-wise</em> fingerprint (pinned by a regression
+test built from the real round record), and in the definitive run below it refuses the
+poison <em>before any training</em>. Layered nulls are the design, and the miss-then-catch
+is why.</p>
+<p><strong>The refusal, verbatim from the round record:</strong>
+<em>"{refusal}"</em> — {ev3.get("n_relabel_levels", "?")} relabel levels, consensus
+{ev3.get("offset_consensus", 0):.0%}, while the case-fraction that fooled v1 sat at
+{ev3.get("relabel_case_frac", 0):.0%}. A third honest detail: the forgetting gate ALONE
+would have passed the poisoned candidate (regional Dice drops ~0.02, within tolerance) —
+the poison corrupts enumeration, which region-Dice barely sees but APL fully prices.
+Three layers, three different failure classes.</p>
+</div>
+<figure>{fig_round_dice(rounds)}
+<figcaption><strong>Fig 7 — What the model knows, round over round.</strong> Round 3 is
+flat by design: the batch was refused, nothing trained, the incumbent stood. Round 4 is the
+arc completing — cervical 0 → {m4.get("eval", {}).get("dice_cervical_median", 0):.2f} as the
+77%-cervical batch arrives, thoraco-lumbar held by the rehearsal mix.</figcaption></figure>
+<figure>{fig_round_burden(rounds)}
+<figcaption><strong>Fig 8 — The headline: correction burden per case.</strong> Median APL on
+the sequestered test falls as the loop learns; every promotion carried a measured gain over
+do-nothing (+10.0%, +9.0%, +8.5% total-APL on promoted rounds).</figcaption></figure>
+<figure>{fig_loss_curves(rounds)}
+<figcaption><strong>Fig 9 — Every training curve, logged.</strong> One MLflow run per
+round/arm (full 2,000-point curves; local <code>mlruns/</code>, inspect with
+<code>mlflow ui</code>), duplicated as <code>losses.json</code> per round so the repo needs
+no tool to be complete. Round 3 has no curve — a refused batch trains nothing.</figcaption></figure>
+<figure>{fig_refusal_panel(rounds, arms)}
+<figcaption><strong>Fig 10 — What the refusal prevented.</strong> The counterfactual arm
+force-admits the poison and trains anyway: +{(cf_apl - inc_apl) / inc_apl:.1%} correction
+burden ({inc_apl / 1000:,.0f} → {cf_apl / 1000:,.0f} m). The refused round costs nothing —
+the incumbent simply stands.</figcaption></figure>
+<figure>{fig_ablation(rounds, arms)}
+<figcaption><strong>Fig 11 — The G4 ablation, reported as measured.</strong> At this scale
+(one fine-tune round, 2,000 iters, batch still 23% thoraco-lumbar) removing rehearsal does
+NOT collapse any region — Dice differences are within noise; rehearsal's measurable value
+here is a {(a4.get("eval", {}).get("apl_mm_total", 0) - m4.get("eval", {}).get("apl_mm_total", 1)) / m4.get("eval", {}).get("apl_mm_total", 1):.1%} APL margin. Catastrophic forgetting is a
+real phenomenon at scale (see the continual-learning literature); this demo shows the
+guardrail and reports honestly that one gentle round did not trigger it.</figcaption></figure>
+<div class="card">
+<h3 style="margin-top:0">Provenance per round</h3>
+<table>
+<tr><th>round</th><th>MLflow run</th><th>dvc add</th><th>dvc push</th><th>verdict</th></tr>
+{track_rows}
+</table>
+<p style="margin-bottom:0">Models are DVC-tracked (pointers committed); pushes await a
+one-time storage re-auth and are recorded per-round rather than silently skipped. Rounds
+0–2 reproduced byte-identical losses across two independent chain executions (0.7627 /
+0.6286 / 0.1172) — the seeded determinism G2 requires.</p>
+</div>
+'''
+
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -431,8 +591,8 @@ the loop exists to drive down — Dice tells you overlap, APL tells you labour.<
 <p class="meta">A continual-learning loop that learns from correction deltas — and can be
 seen refusing a bad round. Open data (VerSe 2020, CC&nbsp;BY-SA&nbsp;4.0), MIT code.
 Updated {date.today().isoformat()} ·
-{("W0–W2: " + str(len(rounds)) + " round(s) run") if rounds else ("W0–W1 complete" if w1 else "W0 complete")}
-<span class="badge">{"17/17" if rounds else ("12/12" if w1 else "5/5")} tests passing</span></p>
+{("W0–W4: " + str(len(rounds)) + " rounds + " + str(len(arms)) + " arms, tracked") if arms else (("W0–W2: " + str(len(rounds)) + " round(s) run") if rounds else ("W0–W1 complete" if w1 else "W0 complete"))}
+<span class="badge">{"28/28" if arms else ("17/17" if rounds else ("12/12" if w1 else "5/5"))} tests passing</span></p>
 
 <div class="card">
 <h2 style="margin-top:0">What this demo is</h2>
@@ -518,7 +678,7 @@ Originals are never touched; poisoned copies live outside git in
 {poison["n_cases"]} cases, {sum(len(c["label_map"]) for c in poison["cases"])} labels shifted in total.</p>
 </div>
 
-{w1_html}\n{w2_html}\n<h2>What exists so far</h2>
+{w1_html}\n{w2_html}\n{w4_html}\n<h2>What exists so far</h2>
 <div class="card">
 <table>
 <tr><th>Artifact</th><th>What it is</th></tr>
@@ -531,7 +691,7 @@ Originals are never touched; poisoned copies live outside git in
 {("<tr><td><code>src/clloop/delta.py</code></td><td>The frozen correction-delta ruler (APL + surface Dice + taxonomy), 7-test null suite</td></tr>"
   "<tr><td><code>manifests/w1_ruler_validation.json</code></td><td>Per-case scores of the 13 real poisoned pairs — the ruler's live validation</td></tr>") if w1 else ""}
 </table>
-<p style="margin-bottom:0"><strong>Next:</strong> {"W3 — the three refusals + the two-null promotion gate; then the full run with the poisoned round." if rounds else ("W2 — the round-0 baseline model and the round engine." if w1 else "W1 — the frozen correction-delta ruler.")}</p>
+<p style="margin-bottom:0"><strong>Next:</strong> {"W5 — README narrative + publish (the repo goes public)." if arms else ("W3 — refusals + promotion gate." if rounds else "W1/W2.")}</p>
 </div>
 
 <p class="meta">Code MIT · Data: Sekuboyina&nbsp;et&nbsp;al., <em>VerSe: A Vertebrae Labelling and

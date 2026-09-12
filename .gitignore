@@ -1,6 +1,10 @@
 # Data stays OUT of the repo — CC BY-SA imaging is fetched by scripts/download_verse.sh
 data/
-outputs/
+# outputs: superseded round archives stay out; the LIVE round dirs commit
+# their small artifacts (round.json, deltas, losses, model.pt.dvc pointers) —
+# dvc add writes each round dir's own .gitignore excluding the model bytes.
+outputs/*
+!outputs/rounds/
 __pycache__/
 *.egg-info/
 .pytest_cache/

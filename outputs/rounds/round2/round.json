@@ -1,0 +1,263 @@
+{
+  "round": 2,
+  "seed": 1337,
+  "iters": 2000,
+  "arrival": {
+    "batch_index": 1,
+    "n": 13,
+    "served_poisoned": false
+  },
+  "incumbent": "outputs/rounds/round1/model.pt",
+  "deltas": [
+    {
+      "case_id": "GL247",
+      "apl_mm": 135725.4,
+      "surface_dice": 0.5822,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 10,
+        "missing": 3,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL295",
+      "apl_mm": 114702.5,
+      "surface_dice": 0.663,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 10,
+        "missing": 2,
+        "spurious": 5
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse050",
+      "apl_mm": 77255.0,
+      "surface_dice": 0.3525,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 9,
+        "missing": 8,
+        "spurious": 4
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse075",
+      "apl_mm": 44177.0,
+      "surface_dice": 0.7629,
+      "kind": "relabel",
+      "level_kinds": {
+        "boundary": 3,
+        "relabel": 4,
+        "spurious": 2
+      },
+      "level_offsets": [
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "case_id": "verse088",
+      "apl_mm": 16073.0,
+      "surface_dice": 0.8267,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 9,
+        "spurious": 5
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse104",
+      "apl_mm": 46849.0,
+      "surface_dice": 0.8063,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 16,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse145",
+      "apl_mm": 63229.0,
+      "surface_dice": 0.8403,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 16,
+        "missing": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse577",
+      "apl_mm": 176828.8,
+      "surface_dice": 0.7242,
+      "kind": "boundary",
+      "level_kinds": {
+        "missing": 1,
+        "boundary": 18
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse586",
+      "apl_mm": 113833.9,
+      "surface_dice": 0.6658,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 18
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse593",
+      "apl_mm": 132001.2,
+      "surface_dice": 0.5275,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 19,
+        "missing": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse642",
+      "apl_mm": 180726.1,
+      "surface_dice": 0.5769,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 10,
+        "boundary": 10
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse825",
+      "apl_mm": 78174.0,
+      "surface_dice": 0.6642,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 8,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse835",
+      "apl_mm": 17474.2,
+      "surface_dice": 0.8797,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 7,
+        "spurious": 4
+      },
+      "level_offsets": []
+    }
+  ],
+  "curation": {
+    "policy": "delta-screen (enumeration-signature refusal) + sequestration",
+    "admitted": [
+      "GL247",
+      "GL295",
+      "verse050",
+      "verse075",
+      "verse088",
+      "verse104",
+      "verse145",
+      "verse577",
+      "verse586",
+      "verse593",
+      "verse642",
+      "verse825",
+      "verse835"
+    ],
+    "refused": [],
+    "refusal_reason": null,
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 1,
+      "n_relabel_levels": 4,
+      "offset_histogram": {
+        "-1": 4
+      },
+      "relabel_case_frac": 0.077,
+      "modal_offset": -1,
+      "offset_consensus": 1.0
+    }
+  },
+  "training": {
+    "ids": [
+      "GL247",
+      "GL295",
+      "verse050",
+      "verse075",
+      "verse088",
+      "verse104",
+      "verse145",
+      "verse577",
+      "verse586",
+      "verse593",
+      "verse642",
+      "verse825",
+      "verse835",
+      "GL348",
+      "verse127",
+      "verse514",
+      "verse588"
+    ],
+    "mix": {
+      "n_new": 13,
+      "n_rehearsal": 4,
+      "rehearsal_frac_requested": 0.25,
+      "rehearsal_frac_actual": 0.23529411764705882,
+      "rehearsal_ids": [
+        "GL348",
+        "verse127",
+        "verse514",
+        "verse588"
+      ]
+    }
+  },
+  "loss_final": 0.1172,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.0,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.7285,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.7334,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 84885.1,
+    "apl_mm_total": 2234674.9,
+    "surface_dice_median": 0.7268,
+    "kinds": {
+      "boundary": 13,
+      "mixed": 10,
+      "relabel": 1
+    }
+  },
+  "promotion": {
+    "promoted": true,
+    "reasons": [],
+    "evidence": {
+      "apl_gain_frac_vs_do_nothing": 0.0901
+    }
+  },
+  "mlflow_run_id": "f1ccb29063f446dcae8bcae5aeb2b32d",
+  "dvc": {
+    "path": "outputs/rounds/round2/model.pt",
+    "added": true,
+    "pushed": false,
+    "push_error": "ERROR: unexpected error - Failed to authenticate GDrive: Access token refresh failed: invalid_grant: Bad Request\n\nHaving any troubles? Hit us up at https://dvc.org/support, we are always happy to help!"
+  },
+  "seconds": 805.4
+}

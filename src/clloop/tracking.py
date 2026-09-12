@@ -21,10 +21,21 @@ The loss curve is additionally written to the round directory as
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 EXPERIMENT = "correction-loop-demo"
+
+
+def _dvc_bin() -> str | None:
+    """Absolute dvc path — the interpreter's own bin dir first (systemd units
+    have a bare PATH; a bare "dvc" was a live crash), then PATH."""
+    cand = Path(sys.executable).parent / "dvc"
+    if cand.is_file():
+        return str(cand)
+    return shutil.which("dvc")
 
 
 def _mlflow(repo: Path):
@@ -94,8 +105,13 @@ def dvc_track_model(repo: Path, model_path: Path, *, push: bool = True) -> dict:
     no-op rather than an error, so a public clone without credentials still
     runs the loop end to end."""
     status: dict = {"path": str(model_path.relative_to(repo))}
+    dvc = _dvc_bin()
+    if dvc is None:
+        status["added"] = False
+        status["add_error"] = "dvc binary not found — model NOT version-tracked"
+        return status
     add = subprocess.run(
-        ["dvc", "add", str(model_path)], cwd=repo, capture_output=True, text=True
+        [dvc, "add", str(model_path)], cwd=repo, capture_output=True, text=True
     )
     status["added"] = add.returncode == 0
     if add.returncode != 0:
@@ -103,7 +119,7 @@ def dvc_track_model(repo: Path, model_path: Path, *, push: bool = True) -> dict:
         return status
     if push:
         p = subprocess.run(
-            ["dvc", "push", str(model_path) + ".dvc"],
+            [dvc, "push", str(model_path) + ".dvc"],
             cwd=repo, capture_output=True, text=True,
         )
         status["pushed"] = p.returncode == 0
