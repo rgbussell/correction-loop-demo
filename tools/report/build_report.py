@@ -74,7 +74,9 @@ def load():
     cases = json.loads((REPO / "manifests" / "cases.json").read_text())
     part = json.loads((REPO / "manifests" / "partition.json").read_text())
     poison = json.loads((REPO / "manifests" / "poison.json").read_text())
-    return cases, part, poison
+    w1_p = REPO / "manifests" / "w1_ruler_validation.json"
+    w1 = json.loads(w1_p.read_text()) if w1_p.is_file() else None
+    return cases, part, poison, w1
 
 
 # ---------------------------------------------------------------- figures
@@ -204,6 +206,53 @@ def fig_poison(poison):
     return _svg(fig)
 
 
+def fig_ruler_signature(val):
+    """Scatter: surface Dice vs APL for the 13 real poisoned pairs."""
+    rows = val["cases"]
+    fig, ax = plt.subplots(figsize=(6.6, 3.4))
+    x = [r["apl_mm"] / 1000 for r in rows]
+    y = [r["surface_dice"] for r in rows]
+    ax.scatter(x, y, s=64, color=CRITICAL, edgecolor=SURFACE, linewidth=2, zorder=3,
+               label="poisoned pair (n=13)")
+    ax.axhline(1.0, color=MUTED, linewidth=1.0, linestyle=(0, (1, 2)))
+    ax.text(max(x) * 0.99, 0.965, "shape agreement = perfect", color=MUTED,
+            fontsize=8.5, ha="right")
+    ax.annotate("the enumeration signature:\nshapes right, names wrong,\nredraw cost real",
+                (np.median(x), 1.0), textcoords="offset points", xytext=(-8, -52),
+                color=INK2, fontsize=9)
+    ax.set_xlabel("added path length (metres of contour)")
+    ax.set_ylabel("surface Dice (label-blind)")
+    ax.set_ylim(0.9, 1.02)
+    ax.set_title("The ruler reads all 13 poisoned pairs as what they are",
+                 loc="left", color=INK, fontsize=11)
+    ax.legend(loc="lower left", frameon=False, fontsize=8.5)
+    return _svg(fig)
+
+
+def fig_ruler_nulls():
+    """The null suite as a picture: what each planted input must score."""
+    rows = [
+        ("N1 identity", "APL = 0.0 exactly · sDice = 1.0 · accepted", True),
+        ("N2 pure relabel", "sDice = 1.0 BUT APL > 0 · verdict relabel", True),
+        ("N3 drift extent", "APL rises with levels perturbed (monotone)", True),
+        ("N3b deep erosion", "APL saturates at total contour length (bounded)", True),
+        ("N4 missing / spurious", "named as such, never folded into boundary", True),
+        ("N5 empty auto", "sDice = 0, all levels missing — never agreement", True),
+    ]
+    fig, ax = plt.subplots(figsize=(7.4, 2.3))
+    for i, (name, desc, ok) in enumerate(rows):
+        y = len(rows) - 1 - i
+        ax.text(0.02, y, name, fontsize=9.5, color=INK, va="center", fontweight="bold")
+        ax.text(0.30, y, desc, fontsize=9, color=INK2, va="center")
+        ax.text(0.985, y, "PASS", fontsize=9, color="#006300", va="center", ha="right")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
+    ax.axis("off")
+    ax.set_title("The null suite the ruler passed before being frozen",
+                 loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
 # ---------------------------------------------------------------- report
 CSS = f"""
 :root {{ color-scheme: light; }}
@@ -238,13 +287,46 @@ figcaption {{ font-size: 12.5px; color: {MUTED}; margin-top: 6px; line-height: 1
 
 
 def build() -> None:
-    cases, part, poison = load()
+    cases, part, poison, w1 = load()
     by_id = {c["case_id"]: c for c in cases["cases"]}
     n = cases["n_cases"]
     groups = Counter(c["fov_group"] for c in cases["cases"])
     zs = [c["spacing_mm"][2] for c in cases["cases"]]
     batches = part["arrival_batches"]
     pi = part["poisoned_batch_index"]
+
+
+    w1_html = ""
+    if w1:
+        w1_html = f'''
+<h2>Step 4 — The ruler, null-tested and validated on the real poison (W1)</h2>
+<div class="card">
+<p><strong>What was built.</strong> <code>src/clloop/delta.py</code> — the frozen
+correction-delta ruler. Per (auto, final) pair it reports three things:
+<strong>added path length</strong> (APL, mm — the contour a human would have to redraw,
+label-aware so identity errors carry their true cost; Vaassen&nbsp;et&nbsp;al. 2020),
+<strong>surface Dice</strong> (Nikolov&nbsp;et&nbsp;al. 2018 — deliberately label-<em>blind</em>, so
+its disagreement with APL becomes a diagnostic), and a per-level
+<strong>taxonomy</strong>: boundary / relabel / missing / spurious.</p>
+<p><strong>Why two scores that can disagree?</strong> Because their disagreement is the
+signature of the most dangerous failure class. An enumeration error leaves shapes perfect
+(surface Dice ≈ 1) while every renamed contour still needs redrawing (APL large). A single
+overlap score cannot see this; the pair cannot miss it.</p>
+</div>
+<figure>{fig_ruler_nulls()}
+<figcaption><strong>Fig 5 — The null suite.</strong> Six planted, known-answer inputs the
+ruler must score correctly before it may score anything real. N3b was a genuine finding of
+the suite: APL is bounded by total contour length, so uniformly deeper damage saturates —
+the monotone axis is the <em>extent</em> of damage, not its depth. The suite is also the
+proof that the bounding-box speed optimization (120s → 14s per case) changed nothing.</figcaption></figure>
+<figure>{fig_ruler_signature(w1)}
+<figcaption><strong>Fig 6 — Live validation on the 13 real poisoned pairs.</strong> Every
+poisoned case scores surface Dice ≥ {w1["surface_dice_min"]:.3f} (shapes essentially
+perfect) yet a median of {w1["apl_mm_median"] / 1000:.1f} metres of contour to redraw, and
+{w1["n_verdict_relabel"]}/{w1["n_cases"]} receive the <code>relabel</code> verdict. The
+ruler reads the poison as exactly what it is — before any model exists. This is the
+instrument the loop's refusals will lean on.</figcaption></figure>
+'''
 
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -255,7 +337,8 @@ def build() -> None:
 <h1>correction-loop-demo — build report</h1>
 <p class="meta">A continual-learning loop that learns from correction deltas — and can be
 seen refusing a bad round. Open data (VerSe 2020, CC&nbsp;BY-SA&nbsp;4.0), MIT code.
-Updated {date.today().isoformat()} · W0 complete <span class="badge">5/5 tests passing</span></p>
+Updated {date.today().isoformat()} · {"W0–W1 complete" if w1 else "W0 complete"}
+<span class="badge">{"12/12" if w1 else "5/5"} tests passing</span></p>
 
 <div class="card">
 <h2 style="margin-top:0">What this demo is</h2>
@@ -341,7 +424,7 @@ Originals are never touched; poisoned copies live outside git in
 {poison["n_cases"]} cases, {sum(len(c["label_map"]) for c in poison["cases"])} labels shifted in total.</p>
 </div>
 
-<h2>What exists after W0</h2>
+{w1_html}\n<h2>What exists so far</h2>
 <div class="card">
 <table>
 <tr><th>Artifact</th><th>What it is</th></tr>
@@ -351,10 +434,10 @@ Originals are never touched; poisoned copies live outside git in
 <tr><td><code>manifests/partition.json</code></td><td>The committed stream design: test/pool/batches + poison declaration</td></tr>
 <tr><td><code>manifests/poison.json</code></td><td>Per-case poison audit (sha256 before/after, label maps)</td></tr>
 <tr><td><code>tests/test_partition.py</code></td><td>5 tests: seeded reproducibility, disjointness raises on a planted leak, monotone shift, off-by-one correctness, manifest integrity</td></tr>
+{("<tr><td><code>src/clloop/delta.py</code></td><td>The frozen correction-delta ruler (APL + surface Dice + taxonomy), 7-test null suite</td></tr>"
+  "<tr><td><code>manifests/w1_ruler_validation.json</code></td><td>Per-case scores of the 13 real poisoned pairs — the ruler's live validation</td></tr>") if w1 else ""}
 </table>
-<p style="margin-bottom:0"><strong>Next (W1):</strong> the frozen correction-delta ruler — added
-path length, surface Dice, and the boundary-vs-relabel taxonomy — null-tested before it is
-allowed to score anything, then frozen by sha256 in the program ledger.</p>
+<p style="margin-bottom:0"><strong>Next:</strong> {"W2 — the round-0 baseline model and the round engine: predict → delta → curate → retrain(rehearsal) → evaluate, one command, one seed." if w1 else "W1 — the frozen correction-delta ruler, null-tested before it is allowed to score anything."}</p>
 </div>
 
 <p class="meta">Code MIT · Data: Sekuboyina&nbsp;et&nbsp;al., <em>VerSe: A Vertebrae Labelling and

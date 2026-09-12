@@ -1,0 +1,18 @@
+{
+  "null_panel": {
+    "identity_apl_mm": 0.0,
+    "identity_sdice": 1.0,
+    "relabel_sdice": 1.0,
+    "relabel_apl_positive": true,
+    "relabel_verdict": "relabel",
+    "extent_monotone": true,
+    "extent_apls_mm": [
+      1408.0,
+      2816.0,
+      4224.0
+    ],
+    "live_all_relabel": true,
+    "live_n": 13,
+    "false_agreements": 0
+  }
+}

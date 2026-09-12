@@ -4,8 +4,8 @@
 be seen refusing a bad round.** Open spine-CT demonstration (VerSe 2020,
 CC BY-SA 4.0). Code MIT.
 
-> Status: **W0 complete** — data scanned, stream partition designed, poisoned
-> batch built and audited. See the narrated build report:
+> Status: **W0–W1 complete** — partition + audited poison + the frozen delta ruler,
+> validated 13/13 on the real poisoned pairs. Narrated build report:
 > [`docs/build-report.html`](docs/build-report.html)
 
 ## The idea
