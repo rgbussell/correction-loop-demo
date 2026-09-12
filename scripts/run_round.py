@@ -29,6 +29,9 @@ def main() -> int:
     ap.add_argument("--iters", type=int, default=400)
     ap.add_argument("--rehearsal-frac", type=float, default=0.25)
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--tag", default="", help="ablation arm suffix, e.g. _norehearsal")
+    ap.add_argument("--force-admit", action="store_true",
+                    help="bypass the batch screen (counterfactual arm; recorded)")
     args = ap.parse_args()
 
     if args.build_cache:
@@ -52,6 +55,7 @@ def main() -> int:
     rec = run_round(
         args.round, repo=REPO, data_root=args.data_root, seed=args.seed,
         iters=args.iters, rehearsal_frac=args.rehearsal_frac, device=args.device,
+        tag=args.tag, force_admit=args.force_admit,
     )
     ev = rec["eval"]
     print(f"\nround {args.round} done in {rec['seconds']}s  "

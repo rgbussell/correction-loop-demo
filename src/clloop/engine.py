@@ -36,6 +36,7 @@ from .gates import (
 )
 from .model import fold_labels, make_model, make_training_list, predict, train
 from .preprocess import load_case
+from .tracking import dvc_track_model, log_round, save_losses
 
 REGIONS = {"cervical": range(1, 8), "thoracic": range(8, 20), "lumbar": range(20, 26),
            "sacrum": (26,)}
@@ -121,14 +122,23 @@ def run_round(
     rehearsal_frac: float = 0.25,
     device: str = "cuda",
     serve_poisoned: bool = True,
+    tag: str = "",
+    force_admit: bool = False,
 ) -> dict:
-    """Execute round k and write outputs/rounds/round{k}/round.json."""
+    """Execute round k and write outputs/rounds/round{k}{tag}/round.json.
+
+    ``tag`` names an ABLATION ARM (e.g. "_norehearsal", "_counterfactual")
+    written alongside the main round without touching the promotion chain —
+    `incumbent_pointer` only reads untagged rounds. ``force_admit`` bypasses
+    the batch screen (for the counterfactual: what would training on the
+    refused batch have done?); the bypass is recorded in the round record.
+    """
     t0 = time.time()
     cache_dir = repo / "data" / "cache"
     part = json.loads((repo / "manifests" / "partition.json").read_text())
     cases = json.loads((repo / "manifests" / "cases.json").read_text())["cases"]
     by_id = {c["case_id"]: c for c in cases}
-    out_dir = repo / "outputs" / "rounds" / f"round{k}"
+    out_dir = repo / "outputs" / "rounds" / f"round{k}{tag}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     pool = part["initial_pool"]
@@ -140,6 +150,10 @@ def run_round(
         return img, fold_labels(seg)
 
     record: dict = {"round": k, "seed": seed, "iters": iters}
+    if tag:
+        record["arm"] = tag.lstrip("_")
+    if force_admit:
+        record["force_admit"] = True
 
     if k == 0:
         train_ids = sorted(pool)
@@ -188,6 +202,11 @@ def run_round(
 
         # 2. CURATE — the refusals (W3)
         screen = screen_batch(deltas)
+        if force_admit and screen.batch_refused:
+            record["screen_overridden"] = screen.refusal_reason
+            from .gates import BatchScreen
+
+            screen = BatchScreen(sorted(batch_ids), [], None, screen.evidence)
         record["curation"] = {
             "policy": "delta-screen (enumeration-signature refusal) + sequestration",
             "admitted": screen.admitted,
@@ -214,6 +233,8 @@ def run_round(
                 "evidence": screen.evidence,
             }
             torch.save(init_state, out_dir / "model.pt")  # the standing incumbent
+            record["mlflow_run_id"] = log_round(repo, record, None)
+            record["dvc"] = dvc_track_model(repo, out_dir / "model.pt")
             record["seconds"] = round(time.time() - t0, 1)
             (out_dir / "round.json").write_text(json.dumps(record, indent=2) + "\n")
             return record
@@ -237,14 +258,21 @@ def run_round(
     record["eval"] = ev["aggregate"]
     (out_dir / "eval_per_case.json").write_text(json.dumps(ev["per_case"], indent=2) + "\n")
 
-    # 4. PROMOTE — only past the nulls (round 0 is the founding incumbent)
-    if k > 0:
+    # 4. PROMOTE — only past the nulls (round 0 is the founding incumbent;
+    #    ablation arms never enter the promotion chain)
+    if k > 0 and not tag:
         forgetting = check_forgetting(incumbent_eval, ev["aggregate"])
         decision = decide_promotion(incumbent_eval, ev["aggregate"],
                                     forgetting=forgetting)
         record["promotion"] = {"promoted": decision.promoted,
                                "reasons": decision.reasons,
                                "evidence": decision.evidence}
+    elif k > 0 and tag:
+        record["forgetting_vs_incumbent"] = check_forgetting(
+            incumbent_eval, ev["aggregate"]).__dict__
+    save_losses(out_dir, losses)
+    record["mlflow_run_id"] = log_round(repo, record, losses)
+    record["dvc"] = dvc_track_model(repo, out_dir / "model.pt")
     record["seconds"] = round(time.time() - t0, 1)
     (out_dir / "round.json").write_text(json.dumps(record, indent=2) + "\n")
     return record

@@ -66,16 +66,27 @@ class BatchScreen:
 def screen_batch(
     deltas: list[dict],
     *,
-    min_relabel_frac: float = 0.5,
+    min_relabel_levels: int = 8,
     min_offset_consensus: float = 0.7,
 ) -> BatchScreen:
     """Screen an arriving batch by its correction-delta profile.
 
-    The enumeration-poison signature is level-wise: across the batch's
+    The enumeration-poison signature is LEVEL-wise: across the batch's
     relabel-class levels, the (reference label − auto label) offsets
     concentrate on one value. Scattered relabels are the model's problem;
-    a CONSISTENT offset across cases is the references' problem, and a batch
-    whose references are systematically mis-enumerated is refused whole.
+    a CONSISTENT offset across many levels is the references' problem, and a
+    batch whose references are systematically mis-enumerated is refused whole.
+
+    REVISED after the first live poisoned round (2026-09-12): the original
+    rule also required >=50% of CASE verdicts to be relabel-class, and a weak
+    incumbent's boundary noise diluted 9/13 poisoned cases to `mixed` — the
+    screen admitted the batch on evidence of 37/39 relabel levels agreeing on
+    +1 (consensus 0.949). The promotion gate caught it (the candidate scored
+    -40% vs do-nothing and was refused), which is what the layered design is
+    for — but the fingerprint lives at the LEVEL, not the case verdict, so
+    the rule now reads: >= ``min_relabel_levels`` relabel-class levels whose
+    offsets reach ``min_offset_consensus``. Case-kind fractions remain in the
+    evidence for the dashboard, not in the decision.
 
     Requires each delta dict to carry ``level_offsets``: the list of
     (final_label − auto_label) values for its relabel-class levels.
@@ -106,13 +117,13 @@ def screen_batch(
         "modal_offset": int(modal_offset),
         "offset_consensus": round(consensus, 3),
     })
-    if relabel_frac >= min_relabel_frac and consensus >= min_offset_consensus:
+    if len(all_offsets) >= min_relabel_levels and consensus >= min_offset_consensus:
         return BatchScreen(
             [], sorted(ids),
-            f"enumeration-shift signature: {relabel_frac:.0%} of cases are "
-            f"relabel-class and {consensus:.0%} of relabel offsets agree on "
-            f"{modal_offset:+d} — a systematic reference labeling error, "
-            "refused before any training",
+            f"enumeration-shift signature: {len(all_offsets)} relabel-class "
+            f"levels across the batch and {consensus:.0%} of their offsets "
+            f"agree on {modal_offset:+d} — a systematic reference labeling "
+            "error, refused before any training",
             evidence,
         )
     return BatchScreen(sorted(ids), [], None, evidence)

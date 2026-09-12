@@ -114,3 +114,23 @@ def test_forgetting_blocks_promotion_even_with_apl_gain():
     d = decide_promotion(inc, cand, forgetting=check_forgetting(inc, cand))
     assert not d.promoted
     assert any("forgetting" in r for r in d.reasons)
+
+
+def test_screen_regression_the_real_round3_miss():
+    """Regression from the first LIVE poisoned round (2026-09-12): the weak
+    incumbent's boundary noise left only 2/13 cases with a `relabel` case
+    verdict, so the original case-fraction rule ADMITTED a batch whose 39
+    relabel levels agreed on +1 at consensus 0.949. The promotion gate caught
+    it (-40% vs do-nothing); this test pins the revised level-wise rule so
+    the screen itself now refuses that exact evidence."""
+    # Reconstructed from outputs round3/round.json: kinds mixed 9 / relabel 2
+    # / boundary 2, offsets {+1: 37, +2: 1, -1: 1} spread over the batch.
+    offsets = [[1], [1, 1], [1] * 9, [1] * 6, [1] * 5, [1] * 4, [1, 1, 1],
+               [1, 2], [1, 1], [1], [1, 1, 1], [-1], [1]]
+    kinds = ["mixed"] * 9 + ["relabel"] * 2 + ["boundary"] * 2
+    deltas = [{"case_id": f"c{i}", "kind": kinds[i], "level_offsets": offsets[i],
+               "level_kinds": {kinds[i]: 1}} for i in range(13)]
+    scr = screen_batch(deltas)
+    assert scr.batch_refused, "the revised rule must refuse the real evidence"
+    assert scr.evidence["offset_consensus"] >= 0.9
+    assert scr.evidence["relabel_case_frac"] < 0.2  # the diluted verdicts that fooled v1
