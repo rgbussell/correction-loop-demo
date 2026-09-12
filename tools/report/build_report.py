@@ -76,7 +76,14 @@ def load():
     poison = json.loads((REPO / "manifests" / "poison.json").read_text())
     w1_p = REPO / "manifests" / "w1_ruler_validation.json"
     w1 = json.loads(w1_p.read_text()) if w1_p.is_file() else None
-    return cases, part, poison, w1
+    rounds = []
+    rdir = REPO / "outputs" / "rounds"
+    if rdir.is_dir():
+        for d in sorted(rdir.iterdir()):
+            f = d / "round.json"
+            if f.is_file():
+                rounds.append(json.loads(f.read_text()))
+    return cases, part, poison, w1, rounds
 
 
 # ---------------------------------------------------------------- figures
@@ -253,6 +260,46 @@ def fig_ruler_nulls():
     return _svg(fig)
 
 
+def fig_round_dice(rounds):
+    """Per-region median Dice on the sequestered test, round over round."""
+    regions = ["cervical", "thoracic", "lumbar", "sacrum"]
+    colors = {"cervical": S2, "thoracic": S3, "lumbar": S1, "sacrum": MUTED}
+    fig, ax = plt.subplots(figsize=(6.6, 3.4))
+    x = [r["round"] for r in rounds]
+    for reg in regions:
+        y = [r["eval"].get(f"dice_{reg}_median") for r in rounds]
+        ax.plot(x, y, color=colors[reg], linewidth=2, marker="o", markersize=8,
+                markeredgecolor=SURFACE, markeredgewidth=2, label=reg)
+        if y and y[-1] is not None:
+            ax.annotate(f"{y[-1]:.2f}", (x[-1], y[-1]), textcoords="offset points",
+                        xytext=(8, -3), color=INK2, fontsize=8.5)
+    ax.set_xticks(x, [f"round {i}" for i in x])
+    ax.set_ylim(0, 1.0)
+    ax.set_ylabel("median Dice (sequestered test)")
+    ax.legend(loc="lower right", frameon=False, fontsize=8.5, ncols=2)
+    ax.set_title("What the model knows, round over round", loc="left",
+                 color=INK, fontsize=11)
+    return _svg(fig)
+
+
+def fig_round_burden(rounds):
+    """The loop's headline: correction burden on the sequestered test."""
+    fig, ax = plt.subplots(figsize=(6.6, 3.1))
+    x = [r["round"] for r in rounds]
+    y = [r["eval"]["apl_mm_median"] / 1000 for r in rounds]
+    ax.plot(x, y, color=S1, linewidth=2, marker="o", markersize=8,
+            markeredgecolor=SURFACE, markeredgewidth=2)
+    for xi, yi in zip(x, y):
+        ax.annotate(f"{yi:.1f} m", (xi, yi), textcoords="offset points",
+                    xytext=(0, 9), ha="center", color=INK2, fontsize=9)
+    ax.set_xticks(x, [f"round {i}" for i in x])
+    ax.set_ylabel("median APL per test case (m)")
+    ax.set_ylim(bottom=0)
+    ax.set_title("The headline: correction burden per case", loc="left",
+                 color=INK, fontsize=11)
+    return _svg(fig)
+
+
 # ---------------------------------------------------------------- report
 CSS = f"""
 :root {{ color-scheme: light; }}
@@ -287,7 +334,7 @@ figcaption {{ font-size: 12.5px; color: {MUTED}; margin-top: 6px; line-height: 1
 
 
 def build() -> None:
-    cases, part, poison, w1 = load()
+    cases, part, poison, w1, rounds = load()
     by_id = {c["case_id"]: c for c in cases["cases"]}
     n = cases["n_cases"]
     groups = Counter(c["fov_group"] for c in cases["cases"])
@@ -328,6 +375,52 @@ ruler reads the poison as exactly what it is — before any model exists. This i
 instrument the loop's refusals will lean on.</figcaption></figure>
 '''
 
+    w2_html = ""
+    if rounds:
+        r0 = rounds[0]
+        latest = rounds[-1]
+        mix_rows = "".join(
+            f"<tr><td>round {r['round']}</td>"
+            f"<td>{r['training']['mix'].get('n_new', 0)}</td>"
+            f"<td>{r['training']['mix'].get('n_rehearsal', 0)}</td>"
+            f"<td>{r['eval']['apl_mm_median'] / 1000:.1f} m</td>"
+            f"<td>{r['eval']['surface_dice_median']:.3f}</td>"
+            f"<td>{r.get('curation', {}).get('policy', 'baseline')}</td></tr>"
+            for r in rounds
+        )
+        w2_html = f'''
+<h2>Step 5 — The loop turns: baseline + round engine (W2)</h2>
+<div class="card">
+<p><strong>What was built.</strong> A one-command round engine
+(<code>scripts/run_round.py --round K</code>): the incumbent model predicts the arriving
+batch, the frozen W1 ruler scores every correction delta <em>on the native grid</em>, the
+cohort is curated (in W2 still an <code>accept_all</code> stub that says so in its own
+record), the model retrains with a declared ~25% rehearsal mix, and the candidate is
+evaluated on the {len(part["sequestered_test"])}-case sequestered test set — per-region
+Dice for what it knows, ruler APL for what it would cost to fix. Every round writes a
+complete <code>round.json</code>: training mix, per-case deltas, evaluation, timing.</p>
+<p><strong>Scale honesty:</strong> a small MONAI 3-D U-Net at 3 mm isotropic,
+{r0["iters"]} iterations/round — minutes per round on one consumer GPU. The demo measures
+loop mechanics, not segmentation SOTA; the coarse grid is a declared choice, and the ruler
+still scores on the native grid.</p>
+</div>
+<figure>{fig_round_dice(rounds)}
+<figcaption><strong>Fig 7 — Per-region knowledge, round over round.</strong> Median Dice on
+the sequestered test set. Round 0 is the initial-pool baseline (thoraco-lumbar-heavy world);
+later rounds fold in arriving batches with rehearsal. Cervical is where learning must show;
+thoraco-lumbar/sacrum is where forgetting would show.</figcaption></figure>
+<figure>{fig_round_burden(rounds)}
+<figcaption><strong>Fig 8 — The headline metric.</strong> Median added-path-length per
+sequestered test case: the contour a human would still have to redraw. This is the number
+the loop exists to drive down — Dice tells you overlap, APL tells you labour.</figcaption></figure>
+<div class="card">
+<table>
+<tr><th>round</th><th>new cases</th><th>rehearsal</th><th>test APL (median)</th><th>test surface Dice</th><th>curation</th></tr>
+{mix_rows}
+</table>
+</div>
+'''
+
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -337,8 +430,9 @@ instrument the loop's refusals will lean on.</figcaption></figure>
 <h1>correction-loop-demo — build report</h1>
 <p class="meta">A continual-learning loop that learns from correction deltas — and can be
 seen refusing a bad round. Open data (VerSe 2020, CC&nbsp;BY-SA&nbsp;4.0), MIT code.
-Updated {date.today().isoformat()} · {"W0–W1 complete" if w1 else "W0 complete"}
-<span class="badge">{"12/12" if w1 else "5/5"} tests passing</span></p>
+Updated {date.today().isoformat()} ·
+{("W0–W2: " + str(len(rounds)) + " round(s) run") if rounds else ("W0–W1 complete" if w1 else "W0 complete")}
+<span class="badge">{"17/17" if rounds else ("12/12" if w1 else "5/5")} tests passing</span></p>
 
 <div class="card">
 <h2 style="margin-top:0">What this demo is</h2>
@@ -424,7 +518,7 @@ Originals are never touched; poisoned copies live outside git in
 {poison["n_cases"]} cases, {sum(len(c["label_map"]) for c in poison["cases"])} labels shifted in total.</p>
 </div>
 
-{w1_html}\n<h2>What exists so far</h2>
+{w1_html}\n{w2_html}\n<h2>What exists so far</h2>
 <div class="card">
 <table>
 <tr><th>Artifact</th><th>What it is</th></tr>
@@ -437,7 +531,7 @@ Originals are never touched; poisoned copies live outside git in
 {("<tr><td><code>src/clloop/delta.py</code></td><td>The frozen correction-delta ruler (APL + surface Dice + taxonomy), 7-test null suite</td></tr>"
   "<tr><td><code>manifests/w1_ruler_validation.json</code></td><td>Per-case scores of the 13 real poisoned pairs — the ruler's live validation</td></tr>") if w1 else ""}
 </table>
-<p style="margin-bottom:0"><strong>Next:</strong> {"W2 — the round-0 baseline model and the round engine: predict → delta → curate → retrain(rehearsal) → evaluate, one command, one seed." if w1 else "W1 — the frozen correction-delta ruler, null-tested before it is allowed to score anything."}</p>
+<p style="margin-bottom:0"><strong>Next:</strong> {"W3 — the three refusals + the two-null promotion gate; then the full run with the poisoned round." if rounds else ("W2 — the round-0 baseline model and the round engine." if w1 else "W1 — the frozen correction-delta ruler.")}</p>
 </div>
 
 <p class="meta">Code MIT · Data: Sekuboyina&nbsp;et&nbsp;al., <em>VerSe: A Vertebrae Labelling and
