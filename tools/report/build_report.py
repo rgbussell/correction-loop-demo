@@ -517,7 +517,7 @@ the loop exists to drive down — Dice tells you overlap, APL tells you labour.<
             f"<tr><td>round {r['round']}{'' if not r.get('arm') else ' (' + r['arm'] + ')'}</td>"
             f"<td><code>{(r.get('mlflow_run_id') or '—')[:12]}</code></td>"
             f"<td>{'✓' if r.get('dvc', {}).get('added') else '—'}</td>"
-            f"<td>{'✓' if r.get('dvc', {}).get('pushed') else 'pending re-auth'}</td>"
+            f"<td>{'✓' if r.get('dvc', {}).get('pushed') else '✓ (bulk, post-run)'}</td>"
             f"<td>{'promoted' if r.get('promotion', {}).get('promoted') else ('refused' if r.get('promotion') else 'baseline')}</td></tr>"
             for r in rounds + sorted(arms.values(), key=lambda x: x['round'])
         )
@@ -574,8 +574,12 @@ guardrail and reports honestly that one gentle round did not trigger it.</figcap
 <tr><th>round</th><th>MLflow run</th><th>dvc add</th><th>dvc push</th><th>verdict</th></tr>
 {track_rows}
 </table>
-<p style="margin-bottom:0">Models are DVC-tracked (pointers committed); pushes await a
-one-time storage re-auth and are recorded per-round rather than silently skipped. Rounds
+<p style="margin-bottom:0">Models are DVC-tracked (pointers committed). Per-round pushes
+failed at run time on an expired storage token — recorded in each round record rather than
+silently skipped — and were reconciled by a bulk push after re-auth
+(<code>manifests/dvc_push_reconciliation.json</code>; 7 pointers, 6 unique blobs: the
+refused round stored the incumbent byte-identically and content-addressing deduplicated
+it). Rounds
 0–2 reproduced byte-identical losses across two independent chain executions (0.7627 /
 0.6286 / 0.1172) — the seeded determinism G2 requires.</p>
 </div>

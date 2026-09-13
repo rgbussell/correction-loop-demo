@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-13",
+  "note": "Bulk push after the one-time OAuth re-auth. Per-round push attempts failed at run time (invalid_grant, recorded in each round.json); this reconciliation is the durable state. 7 pointers, 6 unique blobs: the refused round 3 stored the round-2 incumbent byte-identically and content-addressing deduplicated it.",
+  "pushed_pointers": [
+    "outputs/rounds/round0/model.pt.dvc",
+    "outputs/rounds/round1/model.pt.dvc",
+    "outputs/rounds/round2/model.pt.dvc",
+    "outputs/rounds/round3/model.pt.dvc",
+    "outputs/rounds/round3_counterfactual/model.pt.dvc",
+    "outputs/rounds/round4/model.pt.dvc",
+    "outputs/rounds/round4_norehearsal/model.pt.dvc"
+  ],
+  "remote_status": "Cache and remote 'gdrive' are in sync."
+}
