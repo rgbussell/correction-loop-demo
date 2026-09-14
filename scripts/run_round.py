@@ -57,7 +57,8 @@ def main() -> int:
     rec = run_round(
         args.round, repo=REPO, data_root=args.data_root, seed=args.seed,
         iters=args.iters, rehearsal_frac=args.rehearsal_frac, device=args.device,
-        tag=args.tag, force_admit=args.force_admit, out_root=args.out_root,
+        tag=args.tag, force_admit=args.force_admit,
+        out_root=args.out_root.resolve() if args.out_root else None,
     )
     ev = rec["eval"]
     print(f"\nround {args.round} done in {rec['seconds']}s  "

@@ -89,7 +89,9 @@ def load():
                 rounds.append(rec)
             else:
                 arms[d.name] = rec
-    return cases, part, poison, w1, rounds, arms
+    band_p = REPO / "manifests" / "w6_seed_band.json"
+    band = json.loads(band_p.read_text()) if band_p.is_file() else None
+    return cases, part, poison, w1, rounds, arms, band
 
 
 # ---------------------------------------------------------------- figures
@@ -472,6 +474,31 @@ def fig_cumulative_exposure(cases, rounds):
     return _svg(fig)
 
 
+def fig_seed_band(band):
+    """Per-round total APL: min-max envelope over seeds + per-seed markers."""
+    rounds_ = band["per_round"]
+    x = np.arange(len(rounds_))
+    med = [r["apl_total_m"]["median"] for r in rounds_]
+    lo = [r["apl_total_m"]["min"] for r in rounds_]
+    hi = [r["apl_total_m"]["max"] for r in rounds_]
+    fig, ax = plt.subplots(figsize=(7.0, 3.4))
+    ax.fill_between(x, lo, hi, color=S1, alpha=0.10, linewidth=0)
+    ax.plot(x, med, color=S1, linewidth=2, marker="o", markersize=8,
+            markeredgecolor=SURFACE, markeredgewidth=2, label="median of 3 seeds")
+    for s_i, mk in zip(band["seeds"], ("o", "s", "^")):
+        ys = [r["apl_total_m"]["per_seed"][s_i] for r in rounds_]
+        ax.plot(x, ys, linestyle="none", marker=mk, markersize=5.5, color=INK2,
+                alpha=0.75, label=s_i)
+    ax.annotate("poisoned batch\nrefused 3/3", (3, hi[3]), textcoords="offset points",
+                xytext=(-6, 10), color=CRITICAL, fontsize=9)
+    ax.set_xticks(x, [f"round {r['round']}" for r in rounds_])
+    ax.set_ylabel("sequestered-test APL total (m)")
+    ax.legend(loc="upper right", frameon=False, fontsize=8)
+    ax.set_title("The seed band: min-max envelope over 3 replicates (not a CI)",
+                 loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
 # ---------------------------------------------------------------- report
 CSS = f"""
 :root {{ color-scheme: light; }}
@@ -506,7 +533,7 @@ figcaption {{ font-size: 12.5px; color: {MUTED}; margin-top: 6px; line-height: 1
 
 
 def build() -> None:
-    cases, part, poison, w1, rounds, arms = load()
+    cases, part, poison, w1, rounds, arms, band = load()
     by_id = {c["case_id"]: c for c in cases["cases"]}
     n = cases["n_cases"]
     groups = Counter(c["fov_group"] for c in cases["cases"])
@@ -764,6 +791,57 @@ proves both with artifacts.</strong></p>
 </div>
 '''
 
+    w6_html = ""
+    if band:
+        pr = band["per_round"]
+        s3117_r4_gain = pr[4].get("gain_vs_own_incumbent", {}).get("s3117")
+        w6_html = f'''
+<h2>Step 7 — The seed band: what replicates, what varies, what the gates did (W6)</h2>
+<div class="card">
+<p><strong>The question:</strong> phase 1 ran one seed. Which of its claims survive two
+more? Three full-chain replicates (seeds {", ".join(s.lstrip("s") for s in band["seeds"])}),
+identical in everything but RNG. The band below is a <strong>min-max envelope over n=3 —
+not a confidence interval</strong>; three seeds cannot honestly support more.</p>
+<p><strong>What replicates (3/3):</strong> the end-to-end burden reduction —
+{", ".join(f"−{(pr[0]['apl_total_m']['per_seed'][s] - pr[4]['apl_total_m']['per_seed'][s]) / pr[0]['apl_total_m']['per_seed'][s]:.1%}" for s in band["seeds"])}
+(band [−19.3%, −26.4%]); the poison refusal (every seed refused the poisoned batch before
+training); cervical learning in the round-4 candidate (Dice
+{pr[4]["dice_cervical"]["min"]:.2f}–{pr[4]["dice_cervical"]["max"]:.2f}); and every
+promotion that happened carried a real gain (all promoted gains in
+[+{band["promoted_gain_min"]:.1%}, +{band["promoted_gain_max"]:.1%}] — the gate never
+promoted noise).</p>
+<p><strong>What varies — the per-round path, in three different ways:</strong>
+seed 1337 promoted rounds 1, 2, 4. Seed 2027's round-2 candidate came out WORSE than its
+incumbent (−12.4%, plus a forgetting-gate trip) and was refused — training variance,
+converted into a refusal instead of a regression. Seed 3117's round 2 was a
+<strong>false-positive batch refusal</strong>: the screen read 12 relabel levels at 75%
+consensus on offset −1 and blamed the references, but the references were clean — the
+MODEL was systematically off-by-one, and the delta alone cannot tell who is shifted. That
+refusal withheld a genuinely useful batch. And seed 3117's round 4 was refused at
+<strong>+{s3117_r4_gain:.1%} against a 2.0% threshold</strong> — a candidate that had
+learned cervical to 0.58 missed promotion by 0.05 points of a total-burden metric that is
+blind to WHERE the gain lives.</p>
+<p><strong>The honest deployment consequence:</strong> under seed 3117 the deployed
+lineage ends as its round-1 model — cervical-blind — even though a cervical-capable
+candidate existed. The gates' conservatism cost real capability under that seed.</p>
+</div>
+<figure>{fig_seed_band(band)}
+<figcaption><strong>Fig 14 — The seed band.</strong> Per-round sequestered-test burden,
+median and min-max envelope over the three replicates, per-seed markers. The envelope
+narrows toward round 4: outcomes converge even though the promotion paths differ.</figcaption></figure>
+<div class="card">
+<p><strong>Verdict amendment (supersedes the single-seed phrasing above):</strong> the
+method's END-TO-END claims replicate — burden falls in every seed, the poison is refused
+in every seed, cervical is learnable in every seed. The PER-ROUND path does not replicate,
+and the gates are what make that safe: seed variance became reason-coded refusals, never
+silent regressions. Two calibration findings graduate to proposed work: the admission
+screen needs a who-is-shifted discriminator (test the incumbent's modal offset against the
+known-clean sequestered references — W15), and the promotion criterion needs to be
+band-aware and region-aware (a fixed 2.0% total-APL bar sits inside seed noise and
+under-credits compositional gains — W16).</p>
+</div>
+'''
+
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -793,9 +871,11 @@ training (39 relabel levels, 95% consensus on +1); the counterfactual priced the
 layered-null argument, played out live.</li>
 <li><strong>Audit (2026-09-13):</strong> worktree, every historical blob, and every commit
 message swept — no company names, no PHI, no data-storage references. Clean.</li>
-<li><strong>Open caveat:</strong> single seed so far — the W6 seed band (replicate chains,
-gains reported with a min–max band) is the next result to land; no claim here may outrun
-that band once measured.</li>
+<li><strong>Seed band (n=3) measured:</strong> the end-to-end claims replicate — burden
+−19.3% to −26.4% across seeds, poison refused 3/3, cervical learnable 3/3. The per-round
+path varies; the gates convert that variance into refusals, at a measured cost (one clean
+batch and one near-miss candidate refused under seed 3117 — screen v3 + threshold
+recalibration are the proposed fixes).</li>
 </ul>
 </div>""" if rounds and arms else ""}
 
@@ -883,7 +963,7 @@ Originals are never touched; poisoned copies live outside git in
 {poison["n_cases"]} cases, {sum(len(c["label_map"]) for c in poison["cases"])} labels shifted in total.</p>
 </div>
 
-{w1_html}\n{w2_html}\n{w4_html}\n<h2>What exists so far</h2>
+{w1_html}\n{w2_html}\n{w4_html}\n{w6_html}\n<h2>What exists so far</h2>
 <div class="card">
 <table>
 <tr><th>Artifact</th><th>What it is</th></tr>

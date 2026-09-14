@@ -104,6 +104,8 @@ def dvc_track_model(repo: Path, model_path: Path, *, push: bool = True) -> dict:
     Returns a status dict; a missing remote downgrades push to a recorded
     no-op rather than an error, so a public clone without credentials still
     runs the loop end to end."""
+    model_path = model_path.resolve()
+    repo = repo.resolve()
     status: dict = {"path": str(model_path.relative_to(repo))}
     dvc = _dvc_bin()
     if dvc is None:

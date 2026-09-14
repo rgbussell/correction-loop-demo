@@ -1,0 +1,262 @@
+{
+  "round": 2,
+  "seed": 3117,
+  "iters": 2000,
+  "arrival": {
+    "batch_index": 1,
+    "n": 13,
+    "served_poisoned": false
+  },
+  "incumbent": "outputs/seedband/s3117/round1/model.pt",
+  "deltas": [
+    {
+      "case_id": "GL247",
+      "apl_mm": 151774.1,
+      "surface_dice": 0.5904,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 10,
+        "missing": 3,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL295",
+      "apl_mm": 100547.8,
+      "surface_dice": 0.7354,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 10,
+        "missing": 2,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse050",
+      "apl_mm": 76693.0,
+      "surface_dice": 0.4059,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 8,
+        "boundary": 9
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse075",
+      "apl_mm": 54434.0,
+      "surface_dice": 0.7612,
+      "kind": "relabel",
+      "level_kinds": {
+        "relabel": 7,
+        "spurious": 2
+      },
+      "level_offsets": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "case_id": "verse088",
+      "apl_mm": 19088.0,
+      "surface_dice": 0.7806,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 9,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse104",
+      "apl_mm": 59852.0,
+      "surface_dice": 0.7888,
+      "kind": "mixed",
+      "level_kinds": {
+        "relabel": 3,
+        "boundary": 13,
+        "spurious": 3
+      },
+      "level_offsets": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse145",
+      "apl_mm": 48032.0,
+      "surface_dice": 0.8731,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 15,
+        "relabel": 2,
+        "spurious": 3
+      },
+      "level_offsets": [
+        -1,
+        -1
+      ]
+    },
+    {
+      "case_id": "verse577",
+      "apl_mm": 184814.7,
+      "surface_dice": 0.7084,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 16,
+        "missing": 3,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse586",
+      "apl_mm": 99340.9,
+      "surface_dice": 0.6725,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 18,
+        "spurious": 5
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse593",
+      "apl_mm": 135042.8,
+      "surface_dice": 0.5642,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 16,
+        "missing": 5,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse642",
+      "apl_mm": 153995.9,
+      "surface_dice": 0.6668,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 13,
+        "missing": 7,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse825",
+      "apl_mm": 50209.1,
+      "surface_dice": 0.7978,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 8,
+        "spurious": 5
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse835",
+      "apl_mm": 11259.3,
+      "surface_dice": 0.868,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 7,
+        "spurious": 3
+      },
+      "level_offsets": []
+    }
+  ],
+  "curation": {
+    "policy": "delta-screen (enumeration-signature refusal) + sequestration",
+    "admitted": [],
+    "refused": [
+      "GL247",
+      "GL295",
+      "verse050",
+      "verse075",
+      "verse088",
+      "verse104",
+      "verse145",
+      "verse577",
+      "verse586",
+      "verse593",
+      "verse642",
+      "verse825",
+      "verse835"
+    ],
+    "refusal_reason": "enumeration-shift signature: 12 relabel-class levels across the batch and 75% of their offsets agree on -1 \u2014 a systematic reference labeling error, refused before any training",
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 1,
+      "n_relabel_levels": 12,
+      "offset_histogram": {
+        "-1": 9,
+        "1": 3
+      },
+      "relabel_case_frac": 0.077,
+      "modal_offset": -1,
+      "offset_consensus": 0.75
+    }
+  },
+  "training": {
+    "ids": [],
+    "mix": {
+      "n_new": 0,
+      "n_rehearsal": 0,
+      "note": "batch refused \u2014 incumbent stands"
+    }
+  },
+  "loss_final": null,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.0603,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.6708,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.7621,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 73915.6,
+    "apl_mm_total": 2335811.2,
+    "surface_dice_median": 0.7108,
+    "kinds": {
+      "mixed": 11,
+      "boundary": 13
+    }
+  },
+  "promotion": {
+    "promoted": false,
+    "reasons": [
+      "batch refused at curation: enumeration-shift signature: 12 relabel-class levels across the batch and 75% of their offsets agree on -1 \u2014 a systematic reference labeling error, refused before any training"
+    ],
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 1,
+      "n_relabel_levels": 12,
+      "offset_histogram": {
+        "-1": 9,
+        "1": 3
+      },
+      "relabel_case_frac": 0.077,
+      "modal_offset": -1,
+      "offset_consensus": 0.75
+    }
+  },
+  "mlflow_run_id": "ccd80b2047754ef384b29bf5ad06d8ad",
+  "dvc": {
+    "path": "outputs/seedband/s3117/round2/model.pt",
+    "added": true,
+    "pushed": true
+  },
+  "seconds": 252.6
+}
