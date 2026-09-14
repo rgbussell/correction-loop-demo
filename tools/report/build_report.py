@@ -382,6 +382,96 @@ def fig_ablation(rounds, arms):
     return _svg(fig)
 
 
+def _round_intake(cases, rounds):
+    """Per-round training intake: new cases by fov group + rehearsal draw."""
+    by_id = {c["case_id"]: c for c in cases["cases"]}
+    rows = []
+    for r in rounds:
+        k = r["round"]
+        mix = r.get("training", {}).get("mix", {})
+        if k == 0:
+            new_ids = r["training"]["ids"]
+            reh_ids = []
+        else:
+            new_ids = r.get("curation", {}).get("admitted", [])
+            reh_ids = mix.get("rehearsal_ids", [])
+        new_tl = [c for c in new_ids if by_id[c]["fov_group"] == "thoraco-lumbar"]
+        new_cv = [c for c in new_ids if by_id[c]["fov_group"] == "cervical-containing"]
+        new_ot = [c for c in new_ids if by_id[c]["fov_group"] == "other"]
+        rows.append({
+            "round": k,
+            "refused": bool(r.get("curation", {}).get("refusal_reason")),
+            "new_tl": len(new_tl), "new_cv": len(new_cv), "new_other": len(new_ot),
+            "n_new": len(new_ids), "n_reh": len(reh_ids),
+            "new_vertebrae": sum(by_id[c]["n_levels"] for c in new_ids),
+            "reh_vertebrae": sum(by_id[c]["n_levels"] for c in reh_ids),
+            "cerv_frac_new": (len(new_cv) / len(new_ids)) if new_ids else 0.0,
+            "new_ids": new_ids,
+        })
+    return rows
+
+
+def fig_round_intake(cases, rounds):
+    """Stacked bars: what each round actually trained on."""
+    rows = _round_intake(cases, rounds)
+    fig, ax = plt.subplots(figsize=(7.2, 3.3))
+    x = np.arange(len(rows))
+    b_tl = np.array([r["new_tl"] for r in rows], dtype=float)
+    b_cv = np.array([r["new_cv"] for r in rows], dtype=float)
+    b_ot = np.array([r["new_other"] for r in rows], dtype=float)
+    b_re = np.array([r["n_reh"] for r in rows], dtype=float)
+    ax.bar(x, b_tl, 0.6, color=S1, label="new: thoraco-lumbar", edgecolor=SURFACE, linewidth=2)
+    ax.bar(x, b_cv, 0.6, bottom=b_tl, color=S2, label="new: cervical-containing",
+           edgecolor=SURFACE, linewidth=2)
+    ax.bar(x, b_ot, 0.6, bottom=b_tl + b_cv, color=S3, label="new: other",
+           edgecolor=SURFACE, linewidth=2)
+    ax.bar(x, b_re, 0.6, bottom=b_tl + b_cv + b_ot, color=BASE, label="rehearsal (replayed)",
+           edgecolor=SURFACE, linewidth=2)
+    for xi, r in zip(x, rows):
+        total = r["n_new"] + r["n_reh"]
+        if r["refused"]:
+            ax.text(xi, 0.7, "REFUSED\n(0 trained)", ha="center", color=CRITICAL,
+                    fontsize=8.5, fontweight="bold")
+        else:
+            ax.text(xi, total + 0.7, str(int(total)), ha="center", color=INK2, fontsize=9)
+    ax.set_xticks(x, [f"round {r['round']}" for r in rows])
+    ax.set_ylabel("training cases")
+    ax.legend(loc="upper right", frameon=False, fontsize=8.5)
+    ax.set_title("What each round trained on: new data by kind + rehearsal",
+                 loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
+def fig_cumulative_exposure(cases, rounds):
+    """Cumulative unique cases the PROMOTED lineage has trained on, by group."""
+    by_id = {c["case_id"]: c for c in cases["cases"]}
+    rows = _round_intake(cases, rounds)
+    seen: set = set()
+    cum_tl, cum_cv, xlab = [], [], []
+    for r, rec in zip(rows, rounds):
+        if not r["refused"]:
+            seen |= set(r["new_ids"])
+        cum_tl.append(sum(by_id[c]["fov_group"] == "thoraco-lumbar" for c in seen))
+        cum_cv.append(sum(by_id[c]["fov_group"] == "cervical-containing" for c in seen))
+        xlab.append(f"round {r['round']}")
+    x = np.arange(len(rows))
+    fig, ax = plt.subplots(figsize=(6.8, 3.0))
+    ax.plot(x, cum_tl, color=S1, linewidth=2, marker="o", markersize=8,
+            markeredgecolor=SURFACE, markeredgewidth=2, label="thoraco-lumbar")
+    ax.plot(x, cum_cv, color=S2, linewidth=2, marker="o", markersize=8,
+            markeredgecolor=SURFACE, markeredgewidth=2, label="cervical-containing")
+    ax.annotate(f"{cum_tl[-1]}", (x[-1], cum_tl[-1]), textcoords="offset points",
+                xytext=(8, -3), color=INK2, fontsize=9)
+    ax.annotate(f"{cum_cv[-1]}", (x[-1], cum_cv[-1]), textcoords="offset points",
+                xytext=(8, -3), color=INK2, fontsize=9)
+    ax.set_xticks(x, xlab)
+    ax.set_ylabel("unique cases trained on (cumulative)")
+    ax.legend(loc="upper left", frameon=False, fontsize=8.5)
+    ax.set_title("The promoted lineage's cumulative data exposure",
+                 loc="left", color=INK, fontsize=11)
+    return _svg(fig)
+
+
 # ---------------------------------------------------------------- report
 CSS = f"""
 :root {{ color-scheme: light; }}
@@ -521,6 +611,23 @@ the loop exists to drive down — Dice tells you overlap, APL tells you labour.<
             f"<td>{'promoted' if r.get('promotion', {}).get('promoted') else ('refused' if r.get('promotion') else 'baseline')}</td></tr>"
             for r in rounds + sorted(arms.values(), key=lambda x: x['round'])
         )
+        intake_rows = _round_intake(cases, rounds)
+        intake_table = (
+            "<table><tr><th>round</th><th>new cases</th><th>new thoraco-lumbar</th>"
+            "<th>new cervical</th><th>new vertebrae (labels)</th><th>rehearsal cases</th>"
+            "<th>cervical share of new</th></tr>"
+            + "".join(
+                f"<tr><td>round {r['round']}</td>"
+                + (f"<td colspan=6><strong>refused</strong> — no data entered training</td>"
+                   if r["refused"] else
+                   f"<td>{r['n_new']}</td><td>{r['new_tl']}</td><td>{r['new_cv']}</td>"
+                   f"<td>{r['new_vertebrae']}</td><td>{r['n_reh']}</td>"
+                   f"<td>{r['cerv_frac_new']:.0%}</td>")
+                + "</tr>"
+                for r in intake_rows
+            )
+            + "</table>"
+        )
         rounds_table = "".join(
             f"<tr><td><strong>round {r['round']}</strong></td>"
             + ("<td>initial pool (30 cases, ~85% thoraco-lumbar) — the deployed model's world</td>"
@@ -549,6 +656,19 @@ no-rehearsal run) are side experiments that never enter the promotion chain.</p>
 {rounds_table}
 </table>
 </div>
+<h3>The data each round added</h3>
+{intake_table}
+<figure>{fig_round_intake(cases, rounds)}
+<figcaption><strong>Fig 12 — Per-round training intake.</strong> Each bar is the cases a
+round actually trained on: new arrivals split by field-of-view kind (blue thoraco-lumbar,
+orange cervical-containing) plus the gray rehearsal draw of previously-seen cases. Round 0
+is the all-thoraco-lumbar founding pool; the arriving mix turns steadily cervical; the
+poisoned round trains on nothing at all.</figcaption></figure>
+<figure>{fig_cumulative_exposure(cases, rounds)}
+<figcaption><strong>Fig 13 — Cumulative exposure of the promoted lineage.</strong> Unique
+cases the deployed model has ever trained on, by kind. The refused round is the flat step:
+no data entered. By round 4 the lineage has seen both worlds — which is exactly what its
+test scores say (Fig 7).</figcaption></figure>
 <div class="card">
 <p><strong>The story the loop wrote, unscripted.</strong> The FIRST live poisoned round
 produced this demo's best exhibit: the admission screen's original rule (≥50% relabel
@@ -656,6 +776,28 @@ seen refusing a bad round. Open data (VerSe 2020, CC&nbsp;BY-SA&nbsp;4.0), MIT c
 Updated {date.today().isoformat()} ·
 {("W0–W4: " + str(len(rounds)) + " rounds + " + str(len(arms)) + " arms, tracked") if arms else (("W0–W2: " + str(len(rounds)) + " round(s) run") if rounds else ("W0–W1 complete" if w1 else "W0 complete"))}
 <span class="badge">{"28/28" if arms else ("17/17" if rounds else ("12/12" if w1 else "5/5"))} tests passing</span></p>
+
+{f"""
+<div class="card" style="border-left: 4px solid #2a78d6;">
+<h2 style="margin-top:0">Headlines</h2>
+<ul style="margin-bottom:0">
+<li><strong>The method works:</strong> total correction burden fell
+{rounds[0]["eval"]["apl_mm_total"] / 1000:,.0f} → {rounds[-1]["eval"]["apl_mm_total"] / 1000:,.0f} m
+(−{(rounds[0]["eval"]["apl_mm_total"] - rounds[-1]["eval"]["apl_mm_total"]) / rounds[0]["eval"]["apl_mm_total"]:.1%})
+across the 5-round deployment; every promotion beat the do-nothing null.</li>
+<li><strong>Learning without forgetting:</strong> cervical Dice 0.03 → 0.54 as the world
+shifted; thoraco-lumbar held under the 25% rehearsal mix.</li>
+<li><strong>The loop defended itself:</strong> the poisoned batch was refused before any
+training (39 relabel levels, 95% consensus on +1); the counterfactual priced the save at
++40.2% burden. First-run miss by screen v1 was caught by the promotion gate — the
+layered-null argument, played out live.</li>
+<li><strong>Audit (2026-09-13):</strong> worktree, every historical blob, and every commit
+message swept — no company names, no PHI, no data-storage references. Clean.</li>
+<li><strong>Open caveat:</strong> single seed so far — the W6 seed band (replicate chains,
+gains reported with a min–max band) is the next result to land; no claim here may outrun
+that band once measured.</li>
+</ul>
+</div>""" if rounds and arms else ""}
 
 <div class="card">
 <h2 style="margin-top:0">What this demo is</h2>

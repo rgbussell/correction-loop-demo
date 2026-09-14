@@ -100,15 +100,15 @@ def evaluate_on_test(
     return {"aggregate": agg, "per_case": per_case}
 
 
-def incumbent_pointer(repo: Path, k: int) -> Path:
+def incumbent_pointer(rounds_root: Path, k: int) -> Path:
     """The last PROMOTED model before round k — a refused round does not
     advance the incumbent, so the pointer follows promotion, not time."""
     for j in range(k - 1, -1, -1):
-        rec_p = repo / "outputs" / "rounds" / f"round{j}" / "round.json"
+        rec_p = rounds_root / f"round{j}" / "round.json"
         if rec_p.is_file():
             rec = json.loads(rec_p.read_text())
             if j == 0 or rec.get("promotion", {}).get("promoted"):
-                return repo / "outputs" / "rounds" / f"round{j}" / "model.pt"
+                return rounds_root / f"round{j}" / "model.pt"
     raise FileNotFoundError("no promoted incumbent found — run round 0 first")
 
 
@@ -124,6 +124,7 @@ def run_round(
     serve_poisoned: bool = True,
     tag: str = "",
     force_admit: bool = False,
+    out_root: Path | None = None,
 ) -> dict:
     """Execute round k and write outputs/rounds/round{k}{tag}/round.json.
 
@@ -132,13 +133,17 @@ def run_round(
     `incumbent_pointer` only reads untagged rounds. ``force_admit`` bypasses
     the batch screen (for the counterfactual: what would training on the
     refused batch have done?); the bypass is recorded in the round record.
+    ``out_root`` relocates the whole round tree (default outputs/rounds) so
+    seed replicates (W6) run side by side without colliding; the promotion
+    chain is read from the SAME root, keeping each replicate self-contained.
     """
     t0 = time.time()
     cache_dir = repo / "data" / "cache"
     part = json.loads((repo / "manifests" / "partition.json").read_text())
     cases = json.loads((repo / "manifests" / "cases.json").read_text())["cases"]
     by_id = {c["case_id"]: c for c in cases}
-    out_dir = repo / "outputs" / "rounds" / f"round{k}{tag}"
+    rounds_root = out_root if out_root is not None else repo / "outputs" / "rounds"
+    out_dir = rounds_root / f"round{k}{tag}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     pool = part["initial_pool"]
@@ -166,7 +171,7 @@ def run_round(
         poisoned_round = (k - 1) == part["poisoned_batch_index"] and serve_poisoned
         record["arrival"] = {"batch_index": k - 1, "n": len(batch_ids),
                              "served_poisoned": poisoned_round}
-        inc_path = incumbent_pointer(repo, k)
+        inc_path = incumbent_pointer(rounds_root, k)
         record["incumbent"] = str(inc_path.relative_to(repo))
         init_state = torch.load(inc_path, map_location=device, weights_only=True)
         inc_round = json.loads((inc_path.parent / "round.json").read_text())
@@ -216,7 +221,7 @@ def run_round(
         }
         seen = list(pool)
         for j in range(k - 1):
-            prev_rec = repo / "outputs" / "rounds" / f"round{j + 1}" / "round.json"
+            prev_rec = rounds_root / f"round{j + 1}" / "round.json"
             if prev_rec.is_file():
                 seen += json.loads(prev_rec.read_text())["curation"].get("admitted", [])
 

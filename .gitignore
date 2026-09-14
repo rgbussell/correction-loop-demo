@@ -5,6 +5,7 @@ data/
 # dvc add writes each round dir's own .gitignore excluding the model bytes.
 outputs/*
 !outputs/rounds/
+!outputs/seedband/
 __pycache__/
 *.egg-info/
 .pytest_cache/
