@@ -521,8 +521,34 @@ the loop exists to drive down — Dice tells you overlap, APL tells you labour.<
             f"<td>{'promoted' if r.get('promotion', {}).get('promoted') else ('refused' if r.get('promotion') else 'baseline')}</td></tr>"
             for r in rounds + sorted(arms.values(), key=lambda x: x['round'])
         )
+        rounds_table = "".join(
+            f"<tr><td><strong>round {r['round']}</strong></td>"
+            + ("<td>initial pool (30 cases, ~85% thoraco-lumbar) — the deployed model's world</td>"
+               if r["round"] == 0 else
+               f"<td>arrival batch {r['round'] - 1} ({r['arrival']['n']} cases, "
+               f"{'POISONED: enumeration v+1 on its references' if r['arrival'].get('served_poisoned') else 'clean'})</td>")
+            + f"<td>{'baseline' if r['round'] == 0 else ('<strong>refused</strong>, incumbent stood' if not r.get('promotion', {}).get('promoted') else 'promoted')}</td></tr>"
+            for r in rounds
+        )
         w4_html = f'''
 <h2>Step 6 — The run: five rounds, one poison, three verdicts (W4)</h2>
+<div class="card">
+<h3 style="margin-top:0">What a "round" is</h3>
+<p>A round is one turn of the deployment loop. <strong>Round 0</strong> trains the baseline
+model on the initial pool only — the "deployed" model, strong on the anatomy it has seen
+(thoraco-lumbar) and blind to what it has not (cervical). Each later round simulates the
+passage of production time: a <strong>batch of new cases arrives</strong>, the incumbent
+model predicts them, the corrections those predictions would need are scored by the frozen
+ruler, and the loop decides — admit the batch and retrain (with rehearsal of older cases),
+or refuse it. The batches are deliberately ordered so the world <em>changes</em>: the
+cervical-containing fraction rises 14% → 38% → 62% → 77%, and the batch arriving at
+round 3 is the deliberately poisoned one. Ablation <em>arms</em> (the counterfactual, the
+no-rehearsal run) are side experiments that never enter the promotion chain.</p>
+<table>
+<tr><th>round</th><th>what arrives</th><th>verdict</th></tr>
+{rounds_table}
+</table>
+</div>
 <div class="card">
 <p><strong>The story the loop wrote, unscripted.</strong> The FIRST live poisoned round
 produced this demo's best exhibit: the admission screen's original rule (≥50% relabel
@@ -582,6 +608,39 @@ refused round stored the incumbent byte-identically and content-addressing dedup
 it). Rounds
 0–2 reproduced byte-identical losses across two independent chain executions (0.7627 /
 0.6286 / 0.1172) — the seeded determinism G2 requires.</p>
+</div>
+
+<h2>Was the test of this learning method successful?</h2>
+<div class="card">
+<p><strong>Yes — as a test of the loop method, this run succeeded on every claim it was
+built to test.</strong></p>
+<ul>
+<li><strong>Correction burden fell.</strong> Total sequestered-test APL:
+{rounds[0]["eval"]["apl_mm_total"] / 1000:,.0f} → {rounds[-1]["eval"]["apl_mm_total"] / 1000:,.0f} m
+across the deployment — a
+<strong>{(rounds[0]["eval"]["apl_mm_total"] - rounds[-1]["eval"]["apl_mm_total"]) / rounds[0]["eval"]["apl_mm_total"]:.1%}
+reduction</strong> — and every promoted step individually beat the do-nothing null
+(+10.0%, +9.0%, +8.5%).</li>
+<li><strong>New anatomy learned without losing the old.</strong> Cervical Dice 0.03 → 0.54
+as the shifted batches arrived; thoraco-lumbar held (0.69/0.68 → 0.73/0.74) under the
+25% rehearsal mix.</li>
+<li><strong>The loop refused a bad batch, and the refusal was worth it.</strong> The
+poisoned round trained nothing; the counterfactual arm priced the avoided damage at
+<strong>+40.2% burden</strong>. The layered design was exercised for real: screen v1
+missed, the promotion gate caught, the screen was fixed with a regression test.</li>
+<li><strong>Reproducible and provenanced.</strong> Byte-identical training losses across
+two independent executions of rounds 0–2; an MLflow curve and a version-tracked model
+for every round.</li>
+</ul>
+<p><strong>What this does NOT show — the honest limits.</strong> A single seed, so the
+per-round gains carry no uncertainty band yet (phase 2's first job). The "corrector" is
+the reference mask, so the training signal is cleaner than real human corrections and is
+variance-reduction only. The model is deliberately small on a coarse grid, so absolute
+values say nothing about any clinical system. And one gentle round without rehearsal did
+not induce forgetting — the rehearsal margin (5.5% APL) is measured, but the catastrophic
+case is cited from the literature, not reproduced here. Within those bounds:
+<strong>the method works — the loop learns from correction deltas, defends itself, and
+proves both with artifacts.</strong></p>
 </div>
 '''
 

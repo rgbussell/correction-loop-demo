@@ -4,7 +4,7 @@
 # (old digest) are preserved aside, never mixed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-PY=/home/rbussell/miniconda3/bin/python
+PY="${CLLOOP_PY:-python3}"
 ITERS=2000
 
 if [ -d outputs/rounds ] && [ ! -d outputs/rounds_w2_superseded ]; then
