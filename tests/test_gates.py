@@ -134,3 +134,67 @@ def test_screen_regression_the_real_round3_miss():
     assert scr.batch_refused, "the revised rule must refuse the real evidence"
     assert scr.evidence["offset_consensus"] >= 0.9
     assert scr.evidence["relabel_case_frac"] < 0.2  # the diluted verdicts that fooled v1
+
+
+# ------------------------------------------------ screen v3: who is shifted?
+# Pinned from the REAL incidents, not synthetic look-alikes: the committed
+# round deltas and the incumbents' measured offset profiles on the
+# sequestered references (manifests/w15_arbiter_profiles.json).
+
+import json
+from pathlib import Path
+
+_REPO = Path(__file__).resolve().parents[1]
+_CHAINS = {"s1337": "outputs/rounds", "s2027": "outputs/seedband/s2027",
+           "s3117": "outputs/seedband/s3117"}
+
+
+def _incident(chain: str, k: int):
+    deltas = json.loads((_REPO / _CHAINS[chain] / f"round{k}" / "deltas.json").read_text())
+    rows = json.loads((_REPO / "manifests" / "w15_arbiter_profiles.json").read_text())[chain]
+    return deltas, next(r for r in rows if r["round"] == k)
+
+
+def test_v3_admits_the_real_false_positive():
+    """s3117 round 2: a clean batch, 9/12 offsets at -1 — and the incumbent
+    shows the same -1 rate on the sequestered set. The model is shifted."""
+    deltas, row = _incident("s3117", 2)
+    assert not row["served_poisoned"]
+    assert screen_batch(deltas).batch_refused  # v2 refused it — the incident
+    scr = screen_batch(deltas, arbiter=row["arbiter"])
+    assert not scr.batch_refused and len(scr.admitted) == 13
+    assert scr.evidence["arbiter"]["shift_attributed_to"] == "model"
+
+
+@pytest.mark.parametrize("chain", sorted(_CHAINS))
+def test_v3_still_refuses_the_real_poison_in_every_seed(chain):
+    deltas, row = _incident(chain, 3)
+    assert row["served_poisoned"]
+    scr = screen_batch(deltas, arbiter=row["arbiter"])
+    assert scr.batch_refused and scr.admitted == []
+    assert scr.evidence["arbiter"]["shift_attributed_to"] == "references"
+    assert scr.evidence["arbiter"]["p_batch_exceeds_incumbent"] < 1e-4
+
+
+def test_v3_no_clean_round_flips_to_refused():
+    """The arbiter can only ever ADMIT: every clean round in the band is
+    admitted under v3, and no verdict other than the false positive moves."""
+    for chain in _CHAINS:
+        for k in (1, 2, 4):
+            deltas, row = _incident(chain, k)
+            assert not screen_batch(deltas, arbiter=row["arbiter"]).batch_refused
+
+
+def test_v3_same_direction_is_not_enough():
+    """The planted trap: the incumbent DOES carry a +1 bias on the sequestered
+    set, and the batch is poisoned +1. Direction matches; the rate does not."""
+    deltas = [{"case_id": f"c{i}", "kind": "relabel", "level_offsets": [1] * 3,
+               "level_kinds": {"relabel": 3, "boundary": 12}} for i in range(13)]
+    arbiter = {"n_levels": 400, "offset_histogram": {"1": 10}}
+    scr = screen_batch(deltas, arbiter=arbiter)
+    assert scr.batch_refused
+
+
+def test_v3_unusable_arbiter_leaves_the_refusal_standing():
+    deltas = [_delta(f"c{i}", "relabel", [1] * 8) for i in range(13)]
+    assert screen_batch(deltas, arbiter={"n_levels": 0, "offset_histogram": {}}).batch_refused

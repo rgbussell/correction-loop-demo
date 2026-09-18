@@ -100,6 +100,44 @@ def evaluate_on_test(
     return {"aggregate": agg, "per_case": per_case}
 
 
+def relabel_offsets(d) -> list[int]:
+    """(final label − auto label) for a scored case's relabel-class levels."""
+    return [lv.label - lv.other for lv in d.levels if lv.kind == "relabel" and lv.other]
+
+
+def offset_profile_on_test(
+    model, test_ids: list[str], cache_dir: Path, data_root: Path, cases_by_id: dict,
+    *, device: str = "cuda",
+) -> dict:
+    """The incumbent's label-offset profile on the SEQUESTERED references.
+
+    Those references are known-clean, so any consistent offset measured here
+    is the MODEL's enumeration bias — the arbiter the batch screen needs to
+    tell a shifted model from shifted references. Read-only use of the test
+    set: nothing here selects training data.
+    """
+    import nibabel as nib
+
+    per_case, offsets, n_levels = [], [], 0
+    for cid in test_ids:
+        img, _ = load_case(cache_dir, cid)
+        pred = predict(model, img, device=device)
+        rec = cases_by_id[cid]
+        native_ref = np.asanyarray(nib.load(str(data_root / rec["seg"])).dataobj)
+        d = score_case(_to_native(pred, native_ref.shape),
+                       fold_labels(native_ref.astype(np.int16)), tuple(rec["spacing_mm"]))
+        offs = relabel_offsets(d)
+        per_case.append({"case_id": cid, "n_levels": len(d.levels), "level_offsets": offs})
+        offsets += offs
+        n_levels += len(d.levels)
+    hist: dict[int, int] = {}
+    for o in offsets:
+        hist[o] = hist.get(o, 0) + 1
+    return {"summary": {"n_cases": len(test_ids), "n_levels": n_levels,
+                        "offset_histogram": {str(k): v for k, v in sorted(hist.items())}},
+            "per_case": per_case}
+
+
 def incumbent_pointer(rounds_root: Path, k: int) -> Path:
     """The last PROMOTED model before round k — a refused round does not
     advance the incumbent, so the pointer follows promotion, not time."""
@@ -199,21 +237,32 @@ def run_round(
                 "case_id": cid, "apl_mm": d.apl_mm,
                 "surface_dice": d.surface_dice, "kind": d.kind,
                 "level_kinds": d.kinds(),
-                "level_offsets": [lv.label - lv.other for lv in d.levels
-                                  if lv.kind == "relabel" and lv.other],
+                "level_offsets": relabel_offsets(d),
             })
         record["deltas"] = deltas
         (out_dir / "deltas.json").write_text(json.dumps(deltas, indent=2) + "\n")
 
         # 2. CURATE — the refusals (W3)
         screen = screen_batch(deltas)
+        if screen.batch_refused:
+            # Who is shifted? Ask the sequestered references — measured only
+            # when the signature fires, cached beside the incumbent it describes.
+            arb_p = inc_path.parent / "arbiter_profile.json"
+            if arb_p.is_file():
+                arbiter = json.loads(arb_p.read_text())["summary"]
+            else:
+                prof = offset_profile_on_test(inc, test_ids, cache_dir, data_root,
+                                              by_id, device=device)
+                arb_p.write_text(json.dumps(prof, indent=2) + "\n")
+                arbiter = prof["summary"]
+            screen = screen_batch(deltas, arbiter=arbiter)
         if force_admit and screen.batch_refused:
             record["screen_overridden"] = screen.refusal_reason
             from .gates import BatchScreen
 
             screen = BatchScreen(sorted(batch_ids), [], None, screen.evidence)
         record["curation"] = {
-            "policy": "delta-screen (enumeration-signature refusal) + sequestration",
+            "policy": "delta-screen v3 (enumeration signature, sequestered arbiter) + sequestration",
             "admitted": screen.admitted,
             "refused": screen.refused,
             "refusal_reason": screen.refusal_reason,
