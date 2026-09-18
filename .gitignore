@@ -10,3 +10,6 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 mlruns/
+
+# private deny-list terms for tests/test_public_hygiene.py — never tracked
+.hygiene-denylist.local

@@ -16,7 +16,7 @@
 | G4 | Use **rehearsal** so new anatomy can arrive without erasing old coverage | Continual improvement when the case mix shifts (e.g. cervical arriving after lumbar) |
 | G5 | Make the whole story **auditable and public** (tests, manifests, report) | External readers can verify the pattern without private IP |
 
-**Non-goals (declared):** SOTA segmentation accuracy; clinical performance claims; Carlsmed data/code.
+**Non-goals (declared):** SOTA segmentation accuracy; clinical performance claims; any employer or proprietary data/code.
 
 ---
 
