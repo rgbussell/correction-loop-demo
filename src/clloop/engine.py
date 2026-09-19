@@ -27,6 +27,7 @@ import numpy as np
 import torch
 from scipy import ndimage
 
+from .corrector import simulate_correction
 from .delta import score_case
 from .gates import (
     assert_sequestration,
@@ -40,6 +41,16 @@ from .tracking import dvc_track_model, log_round, save_losses
 
 REGIONS = {"cervical": range(1, 8), "thoracic": range(8, 20), "lumbar": range(20, 26),
            "sacrum": (26,)}
+
+
+# The reviewer the loop learns from (W7). ``oracle`` hands over the full
+# reference; the others are a budgeted, imperfect simulated reviewer.
+CORRECTORS = {
+    "oracle": None,
+    "budget": {"budget_frac": 0.5, "leave_frac": 0.05, "jitter_p": 0.0},
+    "budget_jitter": {"budget_frac": 0.5, "leave_frac": 0.05, "jitter_p": 0.3},
+}
+CACHE_MM = (3.0, 3.0, 3.0)
 
 
 def _to_native(pred: np.ndarray, native_shape: tuple) -> np.ndarray:
@@ -164,6 +175,7 @@ def run_round(
     force_admit: bool = False,
     out_root: Path | None = None,
     control: str = "none",
+    corrector: str = "oracle",
 ) -> dict:
     """Execute round k and write outputs/rounds/round{k}{tag}/round.json.
 
@@ -184,6 +196,8 @@ def run_round(
     no arriving batch — so it isolates the value of the new corrections from
     the value of extra optimisation steps.
     """
+    if corrector not in CORRECTORS:
+        raise ValueError(f"corrector must be one of {sorted(CORRECTORS)}, got {corrector!r}")
     if control not in ("none", "with", "only"):
         raise ValueError(f"control must be none|with|only, got {control!r}")
     if control == "only" and not tag:
@@ -234,10 +248,30 @@ def run_round(
         inc = make_model(device)
         inc.load_state_dict(init_state)
         deltas = []
-        for cid in batch_ids:
+        corr_dir = out_dir / "corrected"
+        corr_log = []
+        for n_c, cid in enumerate(batch_ids):
             img, _ = load_case(cache_dir, cid)
             pred = predict(inc, img, device=device)
             rec_c = by_id[cid]
+            if CORRECTORS[corrector] is not None:
+                # The simulated reviewer sees the served reference, spends a
+                # budget, and approves the rest. From here on the loop sees
+                # ONLY (auto, corrected) — never the reference.
+                _, served = load_folded(cid, poisoned_round)
+                corrected, c_rec = simulate_correction(
+                    pred.astype(np.int16), served.astype(np.int16), CACHE_MM,
+                    rng=np.random.default_rng([seed, k, n_c]), **CORRECTORS[corrector])
+                corr_dir.mkdir(parents=True, exist_ok=True)
+                np.savez_compressed(corr_dir / f"{cid}.npz", labels=corrected.astype(np.uint8))
+                corr_log.append({"case_id": cid, **c_rec})
+                d = score_case(pred.astype(np.int16), corrected, CACHE_MM)
+                deltas.append({
+                    "case_id": cid, "apl_mm": d.apl_mm,
+                    "surface_dice": d.surface_dice, "kind": d.kind,
+                    "level_kinds": d.kinds(), "level_offsets": relabel_offsets(d),
+                })
+                continue
             if poisoned_round:
                 ref_p = repo / "data" / "poisoned" / f"{cid}_seg.nii.gz"
             else:
@@ -253,6 +287,18 @@ def run_round(
                 "level_offsets": relabel_offsets(d),
             })
         record["deltas"] = deltas
+        if corr_log:
+            tot = sum(c["burden_total_mm"] for c in corr_log)
+            record["corrector"] = {
+                "name": corrector, **CORRECTORS[corrector],
+                "grid_mm": CACHE_MM[0],
+                "burden_spent_frac": round(sum(c["burden_spent_mm"] for c in corr_log) / tot, 4)
+                if tot else 0.0,
+                "levels_fixed": sum(len(c["fixed"]) for c in corr_log),
+                "levels_left_small": sum(len(c["left_small"]) for c in corr_log),
+                "levels_left_over_budget": sum(len(c["left_over_budget"]) for c in corr_log),
+                "per_case": corr_log,
+            }
         (out_dir / "deltas.json").write_text(json.dumps(deltas, indent=2) + "\n")
 
         # 2. CURATE — the refusals (W3)
@@ -325,11 +371,24 @@ def run_round(
                    "note": "more-training null: equal N drawn from already-seen cases only"}
             record["arm"] = "control"
         record["training"] = {"ids": train_ids, "mix": mix}
+        def corrected_labels(cid: str):
+            """What the simulated reviewer approved for this case, newest first —
+            this round's, else the round it was admitted in. None = full labels."""
+            if CORRECTORS[corrector] is None:
+                return None
+            for j in range(k, 0, -1):
+                c_p = rounds_root / f"round{j}{tag if j == k else ''}" / "corrected" / f"{cid}.npz"
+                if c_p.is_file():
+                    return np.load(c_p)["labels"]
+            return None
+
         data = {}
         for cid in train_ids:
             is_new_poisoned = (poisoned_round and control != "only"
                                and cid in set(screen.admitted))
-            data[cid] = load_folded(cid, is_new_poisoned)
+            img_c, lab_c = load_folded(cid, is_new_poisoned)
+            approved = corrected_labels(cid)
+            data[cid] = (img_c, lab_c if approved is None else approved)
         model, losses = train(data, iters=iters, seed=seed + k, device=device,
                               init_state=init_state)
 

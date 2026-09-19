@@ -32,6 +32,8 @@ def main() -> int:
     ap.add_argument("--tag", default="", help="ablation arm suffix, e.g. _norehearsal")
     ap.add_argument("--force-admit", action="store_true",
                     help="bypass the batch screen (counterfactual arm; recorded)")
+    ap.add_argument("--corrector", choices=("oracle", "budget", "budget_jitter"),
+                    default="oracle", help="the reviewer the loop learns from (W7)")
     ap.add_argument("--control", choices=("none", "with", "only"), default="none",
                     help="the more-training null: 'with' a main round, or 'only' as an arm")
     ap.add_argument("--out-root", type=Path, default=None,
@@ -59,7 +61,7 @@ def main() -> int:
     rec = run_round(
         args.round, repo=REPO, data_root=args.data_root, seed=args.seed,
         iters=args.iters, rehearsal_frac=args.rehearsal_frac, device=args.device,
-        tag=args.tag, force_admit=args.force_admit, control=args.control,
+        tag=args.tag, force_admit=args.force_admit, control=args.control, corrector=args.corrector,
         out_root=args.out_root.resolve() if args.out_root else None,
     )
     ev = rec["eval"]

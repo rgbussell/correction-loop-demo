@@ -1,0 +1,57 @@
+{
+  "cases": [
+    "verse056",
+    "verse033",
+    "GL364"
+  ],
+  "arms": {
+    "budget": {
+      "rows": [
+        {
+          "case_id": "verse056",
+          "fg_bbox_frac": 0.372,
+          "fg_voxel_frac": 0.0057,
+          "ref_fg_voxel_frac": 0.027
+        },
+        {
+          "case_id": "verse033",
+          "fg_bbox_frac": 0.385,
+          "fg_voxel_frac": 0.0069,
+          "ref_fg_voxel_frac": 0.0209
+        },
+        {
+          "case_id": "GL364",
+          "fg_bbox_frac": 0.452,
+          "fg_voxel_frac": 0.0343,
+          "ref_fg_voxel_frac": 0.0324
+        }
+      ],
+      "min_fg_bbox_frac": 0.372,
+      "max_fg_bbox_frac": 0.452
+    },
+    "budget_jitter": {
+      "rows": [
+        {
+          "case_id": "verse056",
+          "fg_bbox_frac": 0.991,
+          "fg_voxel_frac": 0.006,
+          "ref_fg_voxel_frac": 0.027
+        },
+        {
+          "case_id": "verse033",
+          "fg_bbox_frac": 0.895,
+          "fg_voxel_frac": 0.011,
+          "ref_fg_voxel_frac": 0.0209
+        },
+        {
+          "case_id": "GL364",
+          "fg_bbox_frac": 1.0,
+          "fg_voxel_frac": 0.0849,
+          "ref_fg_voxel_frac": 0.0324
+        }
+      ],
+      "min_fg_bbox_frac": 0.895,
+      "max_fg_bbox_frac": 1.0
+    }
+  }
+}

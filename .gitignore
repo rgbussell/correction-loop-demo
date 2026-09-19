@@ -6,6 +6,7 @@ data/
 outputs/*
 !outputs/rounds/
 !outputs/seedband/
+!outputs/corrector/
 __pycache__/
 *.egg-info/
 .pytest_cache/
@@ -13,3 +14,6 @@ mlruns/
 
 # private deny-list terms for tests/test_public_hygiene.py — never tracked
 .hygiene-denylist.local
+
+# simulated-reviewer masks are derivatives of the CC BY-SA imaging labels — data stays out
+outputs/**/corrected/
