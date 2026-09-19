@@ -351,3 +351,37 @@ def test_both_nulls_pinned_from_the_real_band():
     assert (out["n_controls_worse_than_incumbent_after_round1"]
             == out["n_rounds_after_round1"])
     assert out["n_round4_beating_control_on_burden"] == 3
+
+
+# ---------------------- screen v3's measured FALSE NEGATIVE (found in W18)
+def _thin_poison():
+    root = _REPO / "outputs" / "corrector" / "s3117_budget"
+    deltas = json.loads((root / "round3" / "deltas.json").read_text())
+    arbiter = json.loads((root / "round0" / "arbiter_profile.json").read_text())["summary"]
+    return deltas, arbiter
+
+
+def test_v3_admits_a_real_poison_when_the_reviewer_thins_the_signal():
+    """The defect, recorded as it IS. Under a budgeted reviewer only part of the
+    shifted labelling reaches the delta (9 of 12 relabel levels at +1, of 247
+    scored); the incumbent has six +1 offsets of its own on clean references;
+    the one-sided test returns p = 0.0499 against alpha = 0.01 and v3 ADMITS a
+    batch v2 would have refused. The promotion gate refused both candidates
+    trained on it (-11.4%, -15.9%), so nothing deployed — but the claim "the
+    poison is refused at the door under every budgeted arm" is false."""
+    deltas, arbiter = _thin_poison()
+    assert screen_batch(deltas).batch_refused                      # v2: refused
+    v3 = screen_batch(deltas, arbiter=arbiter)
+    assert not v3.batch_refused                                    # v3: admitted
+    assert v3.evidence["arbiter"]["shift_attributed_to"] == "model"
+    assert 0.01 < v3.evidence["arbiter"]["p_batch_exceeds_incumbent"] < 0.06
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "KNOWN DEFECT (W18): v3 puts the burden of proof on REFUSING, so a thin "
+    "signal admits. The known false positive sits at p=0.25 and this false "
+    "negative at p=0.05 — too close to separate by re-tuning alpha on two "
+    "points. Strict xfail: whoever fixes the screen must flip this test."))
+def test_v3_should_refuse_the_thin_poison():
+    deltas, arbiter = _thin_poison()
+    assert screen_batch(deltas, arbiter=arbiter).batch_refused

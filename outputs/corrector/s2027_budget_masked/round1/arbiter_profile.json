@@ -1,0 +1,134 @@
+{
+  "summary": {
+    "n_cases": 24,
+    "n_levels": 423,
+    "offset_histogram": {
+      "1": 2
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "GL364",
+      "n_levels": 12,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse033",
+      "n_levels": 19,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse056",
+      "n_levels": 9,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse091",
+      "n_levels": 20,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse503",
+      "n_levels": 10,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse506",
+      "n_levels": 19,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse510",
+      "n_levels": 19,
+      "level_offsets": [
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse512",
+      "n_levels": 22,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse521",
+      "n_levels": 21,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse533",
+      "n_levels": 18,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse552",
+      "n_levels": 18,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse558",
+      "n_levels": 22,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse560",
+      "n_levels": 18,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse561",
+      "n_levels": 22,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse570",
+      "n_levels": 19,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse584",
+      "n_levels": 22,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse596",
+      "n_levels": 17,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse616",
+      "n_levels": 14,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse649",
+      "n_levels": 25,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse700",
+      "n_levels": 13,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse708",
+      "n_levels": 18,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse712",
+      "n_levels": 10,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse766",
+      "n_levels": 24,
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse824",
+      "n_levels": 12,
+      "level_offsets": []
+    }
+  ]
+}

@@ -10,6 +10,8 @@ kinds of verdict — *promoted*, *refused at the gate*, *refused at the door*.
 📊 **The full narrated build report, with every figure and number:**
 [`docs/build-report.html`](docs/build-report.html)
 
+📄 **What held up and what did not, for a reader who will not run the code:** [`RESULTS.md`](RESULTS.md)
+
 To reuse the controls rather than read about them: [`docs/method-transfer-brief.md`](docs/method-transfer-brief.md)
 maps each one to the experiment you would run on a new training recipe, with a kill condition per experiment.
 

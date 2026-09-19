@@ -200,3 +200,22 @@ def test_w17_result_is_pinned_and_stays_modest():
     eff_b = arms["B region+masked"]["reviewer_effort_by_region"]["cervical"]["fixed_frac"]
     assert eff_b > 5 * eff_w7                          # the per-region budget did what it says
     assert arms["B region+masked"]["candidates_tripping_forgetting"] == 3
+
+
+def test_w18_three_seed_claims_are_pinned_as_decided_in_advance():
+    """Three claims were fixed before seeds 2027/3117 ran, to be made only at
+    3 of 3. One held. The two that failed stay pinned as failed."""
+    import json
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    out = json.loads((repo / "manifests" / "w18_budgeted_seed_band.json").read_text())
+    assert out["complete"] and out["missing"] == []
+    claims = out["claims_3_of_3"]
+    assert claims["unmasked_budget_arm_promotes_nothing"] is True
+    assert claims["poison_refused_under_every_budgeted_arm"] is False
+    assert claims["masking_yields_at_least_one_promotion"] is False
+    # and no poisoned candidate was ever promoted, anywhere
+    for row in out["by_seed"].values():
+        for arm, s in row.items():
+            assert 3 not in s["promoted_rounds"], (arm, s["promoted_rounds"])

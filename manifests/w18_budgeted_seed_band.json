@@ -1,0 +1,312 @@
+{
+  "seeds": [
+    1337,
+    2027,
+    3117
+  ],
+  "by_seed": {
+    "s1337": {
+      "oracle": {
+        "promotions": 3,
+        "promoted_rounds": [
+          1,
+          2,
+          4
+        ],
+        "end_to_end_reduction": 0.2513,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.1004,
+          "2": 0.0901,
+          "4": 0.0853
+        },
+        "candidates_tripping_forgetting": 0,
+        "thoracic_change_in_candidates": {
+          "1": 0.0436,
+          "2": 0.041,
+          "4": 0.0473
+        },
+        "final_candidate_cervical": 0.5389,
+        "deployed_final_cervical": 0.5389
+      },
+      "W7 budget (unfixed approved)": {
+        "promotions": 0,
+        "promoted_rounds": [],
+        "end_to_end_reduction": 0.0,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.055,
+          "2": 0.0489,
+          "4": 0.0398
+        },
+        "candidates_tripping_forgetting": 3,
+        "thoracic_change_in_candidates": {
+          "1": -0.0642,
+          "2": -0.0523,
+          "4": -0.0683
+        },
+        "final_candidate_cervical": 0.0,
+        "deployed_final_cervical": 0.0337
+      },
+      "A masked": {
+        "promotions": 1,
+        "promoted_rounds": [
+          2
+        ],
+        "end_to_end_reduction": 0.0713,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.0404,
+          "2": 0.0713,
+          "4": -0.0035
+        },
+        "candidates_tripping_forgetting": 1,
+        "thoracic_change_in_candidates": {
+          "1": -0.0771,
+          "2": -0.0417,
+          "4": -0.0834
+        },
+        "final_candidate_cervical": 0.1535,
+        "deployed_final_cervical": 0.0717
+      },
+      "B region+masked": {
+        "promotions": 0,
+        "promoted_rounds": [],
+        "end_to_end_reduction": 0.0,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.054,
+          "2": 0.0724,
+          "4": 0.0326
+        },
+        "candidates_tripping_forgetting": 3,
+        "thoracic_change_in_candidates": {
+          "1": -0.0862,
+          "2": -0.0794,
+          "4": -0.0726
+        },
+        "final_candidate_cervical": 0.3046,
+        "deployed_final_cervical": 0.0337
+      }
+    },
+    "s2027": {
+      "oracle": {
+        "promotions": 2,
+        "promoted_rounds": [
+          1,
+          4
+        ],
+        "end_to_end_reduction": 0.2643,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.2028,
+          "2": -0.1243,
+          "4": 0.0771
+        },
+        "candidates_tripping_forgetting": 1,
+        "thoracic_change_in_candidates": {
+          "1": 0.0712,
+          "2": -0.0057,
+          "4": 0.1024
+        },
+        "final_candidate_cervical": 0.4906,
+        "deployed_final_cervical": 0.4906
+      },
+      "W7 budget (unfixed approved)": {
+        "promotions": 0,
+        "promoted_rounds": [],
+        "end_to_end_reduction": 0.0,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.0075,
+          "2": -0.0038,
+          "4": -0.0149
+        },
+        "candidates_tripping_forgetting": 2,
+        "thoracic_change_in_candidates": {
+          "1": -0.0988,
+          "2": -0.0468,
+          "4": -0.0963
+        },
+        "final_candidate_cervical": 0.0,
+        "deployed_final_cervical": 0.0209
+      },
+      "A masked": {
+        "promotions": 1,
+        "promoted_rounds": [
+          1
+        ],
+        "end_to_end_reduction": 0.1051,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.1051,
+          "2": 0.0203,
+          "4": -0.0303
+        },
+        "candidates_tripping_forgetting": 0,
+        "thoracic_change_in_candidates": {
+          "1": -0.0116,
+          "2": 0.0234,
+          "4": -0.0342
+        },
+        "final_candidate_cervical": 0.0049,
+        "deployed_final_cervical": 0.0
+      },
+      "B region+masked": {
+        "promotions": 0,
+        "promoted_rounds": [],
+        "end_to_end_reduction": 0.0,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.0494,
+          "2": 0.0425,
+          "4": 0.0518
+        },
+        "candidates_tripping_forgetting": 2,
+        "thoracic_change_in_candidates": {
+          "1": -0.0188,
+          "2": -0.0275,
+          "4": -0.0968
+        },
+        "final_candidate_cervical": 0.3549,
+        "deployed_final_cervical": 0.0209
+      }
+    },
+    "s3117": {
+      "oracle": {
+        "promotions": 2,
+        "promoted_rounds": [
+          1,
+          4
+        ],
+        "end_to_end_reduction": 0.1931,
+        "poison_refused": true,
+        "candidate_gains": {
+          "1": 0.177,
+          "2": 0.0148,
+          "4": 0.0195
+        },
+        "candidates_tripping_forgetting": 0,
+        "thoracic_change_in_candidates": {
+          "1": 0.0006,
+          "2": 0.0535,
+          "4": 0.0771
+        },
+        "final_candidate_cervical": 0.5795,
+        "deployed_final_cervical": 0.5795
+      },
+      "W7 budget (unfixed approved)": {
+        "promotions": 0,
+        "promoted_rounds": [],
+        "end_to_end_reduction": 0.0,
+        "poison_refused": false,
+        "candidate_gains": {
+          "1": 0.0138,
+          "2": 0.02,
+          "3": -0.1135,
+          "4": 0.0076
+        },
+        "candidates_tripping_forgetting": 4,
+        "thoracic_change_in_candidates": {
+          "1": -0.1957,
+          "2": -0.0735,
+          "3": -0.1161,
+          "4": -0.0643
+        },
+        "final_candidate_cervical": 0.0906,
+        "deployed_final_cervical": 0.0
+      },
+      "A masked": {
+        "promotions": 0,
+        "promoted_rounds": [],
+        "end_to_end_reduction": 0.0,
+        "poison_refused": false,
+        "candidate_gains": {
+          "1": 0.0862,
+          "2": -0.008,
+          "3": -0.159,
+          "4": -0.0177
+        },
+        "candidates_tripping_forgetting": 4,
+        "thoracic_change_in_candidates": {
+          "1": -0.1008,
+          "2": -0.1244,
+          "3": -0.1839,
+          "4": -0.1561
+        },
+        "final_candidate_cervical": 0.2007,
+        "deployed_final_cervical": 0.0
+      },
+      "B region+masked": {
+        "promotions": 1,
+        "promoted_rounds": [
+          4
+        ],
+        "end_to_end_reduction": 0.0513,
+        "poison_refused": false,
+        "candidate_gains": {
+          "1": 0.0919,
+          "2": 0.0165,
+          "3": -0.0704,
+          "4": 0.0513
+        },
+        "candidates_tripping_forgetting": 3,
+        "thoracic_change_in_candidates": {
+          "1": -0.0593,
+          "2": -0.0917,
+          "3": -0.1002,
+          "4": -0.042
+        },
+        "final_candidate_cervical": 0.395,
+        "deployed_final_cervical": 0.395
+      }
+    }
+  },
+  "missing": [],
+  "complete": true,
+  "claims_3_of_3": {
+    "poison_refused_under_every_budgeted_arm": false,
+    "unmasked_budget_arm_promotes_nothing": true,
+    "masking_yields_at_least_one_promotion": false
+  },
+  "reduction_per_seed::oracle": [
+    0.2513,
+    0.2643,
+    0.1931
+  ],
+  "promotions_per_seed::oracle": [
+    3,
+    2,
+    2
+  ],
+  "reduction_per_seed::W7 budget (unfixed approved)": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "promotions_per_seed::W7 budget (unfixed approved)": [
+    0,
+    0,
+    0
+  ],
+  "reduction_per_seed::A masked": [
+    0.0713,
+    0.1051,
+    0.0
+  ],
+  "promotions_per_seed::A masked": [
+    1,
+    1,
+    0
+  ],
+  "reduction_per_seed::B region+masked": [
+    0.0,
+    0.0,
+    0.0513
+  ],
+  "promotions_per_seed::B region+masked": [
+    0,
+    0,
+    1
+  ]
+}

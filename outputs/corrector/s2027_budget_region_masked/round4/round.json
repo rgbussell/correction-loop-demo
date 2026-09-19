@@ -1,0 +1,830 @@
+{
+  "round": 4,
+  "seed": 2027,
+  "iters": 2000,
+  "arrival": {
+    "batch_index": 3,
+    "n": 13,
+    "served_poisoned": false
+  },
+  "incumbent": "outputs/corrector/s2027_budget_region_masked/round0/model.pt",
+  "deltas": [
+    {
+      "case_id": "GL003",
+      "apl_mm": 12540.0,
+      "surface_dice": 0.5939,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 11,
+        "missing": 2,
+        "accepted": 8
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL016",
+      "apl_mm": 10701.0,
+      "surface_dice": 0.5984,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 13,
+        "missing": 1,
+        "accepted": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL453",
+      "apl_mm": 6750.0,
+      "surface_dice": 0.727,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 8,
+        "accepted": 4
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse097",
+      "apl_mm": 21678.0,
+      "surface_dice": 0.5817,
+      "kind": "boundary",
+      "level_kinds": {
+        "accepted": 10,
+        "missing": 3,
+        "boundary": 10
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse108",
+      "apl_mm": 27330.0,
+      "surface_dice": 0.3669,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 9,
+        "accepted": 6,
+        "boundary": 9
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse509",
+      "apl_mm": 22092.0,
+      "surface_dice": 0.7605,
+      "kind": "boundary",
+      "level_kinds": {
+        "accepted": 9,
+        "boundary": 11,
+        "missing": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse537",
+      "apl_mm": 10293.0,
+      "surface_dice": 0.7057,
+      "kind": "boundary",
+      "level_kinds": {
+        "accepted": 3,
+        "boundary": 7,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse539",
+      "apl_mm": 17832.0,
+      "surface_dice": 0.6334,
+      "kind": "mixed",
+      "level_kinds": {
+        "accepted": 10,
+        "boundary": 8,
+        "missing": 1,
+        "spurious": 4
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse620",
+      "apl_mm": 18933.0,
+      "surface_dice": 0.7464,
+      "kind": "mixed",
+      "level_kinds": {
+        "accepted": 5,
+        "boundary": 15,
+        "relabel": 1,
+        "missing": 1,
+        "spurious": 1
+      },
+      "level_offsets": [
+        -2
+      ]
+    },
+    {
+      "case_id": "verse631",
+      "apl_mm": 37866.0,
+      "surface_dice": 0.451,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 13,
+        "boundary": 10
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse646",
+      "apl_mm": 15747.0,
+      "surface_dice": 0.7436,
+      "kind": "boundary",
+      "level_kinds": {
+        "accepted": 7,
+        "boundary": 16
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse650",
+      "apl_mm": 5820.0,
+      "surface_dice": 0.3612,
+      "kind": "mixed",
+      "level_kinds": {
+        "accepted": 11,
+        "missing": 3,
+        "boundary": 2,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse820",
+      "apl_mm": 8241.0,
+      "surface_dice": 0.7732,
+      "kind": "boundary",
+      "level_kinds": {
+        "accepted": 3,
+        "boundary": 6,
+        "spurious": 1
+      },
+      "level_offsets": []
+    }
+  ],
+  "corrector": {
+    "name": "budget_region_masked",
+    "budget_frac": 0.5,
+    "leave_frac": 0.05,
+    "per_region": true,
+    "mask_unreviewed": true,
+    "grid_mm": 3.0,
+    "burden_spent_frac": 0.5035,
+    "levels_fixed": 101,
+    "levels_left_small": 20,
+    "levels_left_over_budget": 110,
+    "per_case": [
+      {
+        "case_id": "GL003",
+        "reviewed_frac": 0.0805,
+        "burden_total_mm": 17643.0,
+        "burden_spent_mm": 11025.0,
+        "fixed": [
+          12,
+          11,
+          9,
+          7,
+          1,
+          6,
+          5
+        ],
+        "left_small": [
+          16
+        ],
+        "left_over_budget": [
+          10,
+          8,
+          2,
+          3,
+          4
+        ],
+        "kinds_fixed": [
+          "missing",
+          "missing",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary"
+        ]
+      },
+      {
+        "case_id": "GL016",
+        "reviewed_frac": 0.0559,
+        "burden_total_mm": 16251.0,
+        "burden_spent_mm": 10062.0,
+        "fixed": [
+          11,
+          10,
+          9,
+          1,
+          7,
+          6
+        ],
+        "left_small": [],
+        "left_over_budget": [
+          8,
+          2,
+          5,
+          4,
+          3
+        ],
+        "kinds_fixed": [
+          "missing",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary"
+        ]
+      },
+      {
+        "case_id": "GL453",
+        "reviewed_frac": 0.0728,
+        "burden_total_mm": 9543.0,
+        "burden_spent_mm": 5814.0,
+        "fixed": [
+          10,
+          9,
+          2,
+          1,
+          7
+        ],
+        "left_small": [],
+        "left_over_budget": [
+          8,
+          6,
+          5,
+          4,
+          3
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary"
+        ]
+      },
+      {
+        "case_id": "verse097",
+        "reviewed_frac": 0.0119,
+        "burden_total_mm": 39300.0,
+        "burden_spent_mm": 19008.0,
+        "fixed": [
+          23,
+          22,
+          24,
+          18,
+          19,
+          17,
+          7,
+          6,
+          5
+        ],
+        "left_small": [
+          1,
+          4
+        ],
+        "left_over_budget": [
+          21,
+          20,
+          16,
+          15,
+          14,
+          13,
+          12,
+          8,
+          11,
+          9,
+          10
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "missing",
+          "missing",
+          "missing"
+        ]
+      },
+      {
+        "case_id": "verse108",
+        "reviewed_frac": 0.0072,
+        "burden_total_mm": 46611.0,
+        "burden_spent_mm": 26781.0,
+        "fixed": [
+          22,
+          23,
+          21,
+          19,
+          18,
+          17,
+          16,
+          7,
+          2,
+          1,
+          6,
+          5,
+          3,
+          4
+        ],
+        "left_small": [
+          25
+        ],
+        "left_over_budget": [
+          24,
+          20,
+          15,
+          14,
+          13,
+          12,
+          9,
+          11,
+          8,
+          10
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing"
+        ]
+      },
+      {
+        "case_id": "verse509",
+        "reviewed_frac": 0.01,
+        "burden_total_mm": 41121.0,
+        "burden_spent_mm": 17577.0,
+        "fixed": [
+          25,
+          23,
+          19,
+          17,
+          16,
+          18,
+          7
+        ],
+        "left_small": [
+          4
+        ],
+        "left_over_budget": [
+          24,
+          22,
+          20,
+          21,
+          12,
+          11,
+          13,
+          14,
+          15,
+          8,
+          10,
+          9
+        ],
+        "kinds_fixed": [
+          "missing",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary"
+        ]
+      },
+      {
+        "case_id": "verse537",
+        "reviewed_frac": 0.0085,
+        "burden_total_mm": 17103.0,
+        "burden_spent_mm": 8415.0,
+        "fixed": [
+          22,
+          21,
+          18,
+          19,
+          5
+        ],
+        "left_small": [
+          15
+        ],
+        "left_over_budget": [
+          20,
+          23,
+          24,
+          17,
+          16
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "spurious"
+        ]
+      },
+      {
+        "case_id": "verse539",
+        "reviewed_frac": 0.006,
+        "burden_total_mm": 38658.0,
+        "burden_spent_mm": 16179.0,
+        "fixed": [
+          24,
+          25,
+          18,
+          17,
+          19,
+          5,
+          4,
+          1,
+          7
+        ],
+        "left_small": [
+          9,
+          8,
+          11,
+          3
+        ],
+        "left_over_budget": [
+          22,
+          23,
+          20,
+          21,
+          16,
+          15,
+          14,
+          13,
+          10
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "missing",
+          "boundary",
+          "boundary",
+          "boundary",
+          "spurious",
+          "spurious",
+          "spurious",
+          "spurious"
+        ]
+      },
+      {
+        "case_id": "verse620",
+        "reviewed_frac": 0.0522,
+        "burden_total_mm": 32043.0,
+        "burden_spent_mm": 14193.0,
+        "fixed": [
+          25,
+          20,
+          24,
+          19,
+          17,
+          18,
+          7,
+          5
+        ],
+        "left_small": [
+          1,
+          4,
+          6
+        ],
+        "left_over_budget": [
+          23,
+          21,
+          22,
+          15,
+          16,
+          14,
+          13,
+          12,
+          11,
+          8,
+          9,
+          10
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "boundary",
+          "relabel",
+          "missing",
+          "boundary",
+          "boundary",
+          "spurious"
+        ]
+      },
+      {
+        "case_id": "verse631",
+        "reviewed_frac": 0.0201,
+        "burden_total_mm": 63306.0,
+        "burden_spent_mm": 34746.0,
+        "fixed": [
+          19,
+          18,
+          17,
+          23,
+          24,
+          20,
+          2,
+          1,
+          7,
+          6,
+          5,
+          4,
+          3
+        ],
+        "left_small": [],
+        "left_over_budget": [
+          16,
+          15,
+          14,
+          13,
+          12,
+          8,
+          10,
+          11,
+          9,
+          21,
+          22
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "missing",
+          "boundary",
+          "boundary",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing",
+          "missing"
+        ]
+      },
+      {
+        "case_id": "verse646",
+        "reviewed_frac": 0.0078,
+        "burden_total_mm": 30792.0,
+        "burden_spent_mm": 13533.0,
+        "fixed": [
+          22,
+          23,
+          14,
+          12,
+          18,
+          19,
+          7
+        ],
+        "left_small": [
+          1,
+          3
+        ],
+        "left_over_budget": [
+          24,
+          21,
+          20,
+          11,
+          13,
+          9,
+          16,
+          15,
+          17,
+          8,
+          10
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary",
+          "boundary"
+        ]
+      },
+      {
+        "case_id": "verse650",
+        "reviewed_frac": 0.007,
+        "burden_total_mm": 13926.0,
+        "burden_spent_mm": 6042.0,
+        "fixed": [
+          7,
+          2,
+          8,
+          9,
+          24,
+          25
+        ],
+        "left_small": [
+          16,
+          13,
+          12,
+          17,
+          11
+        ],
+        "left_over_budget": [
+          6,
+          1,
+          5,
+          4,
+          3,
+          10,
+          15,
+          14,
+          18
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "missing",
+          "missing",
+          "spurious",
+          "spurious"
+        ]
+      },
+      {
+        "case_id": "verse820",
+        "reviewed_frac": 0.0108,
+        "burden_total_mm": 16983.0,
+        "burden_spent_mm": 9594.0,
+        "fixed": [
+          23,
+          24,
+          16,
+          17,
+          18
+        ],
+        "left_small": [],
+        "left_over_budget": [
+          22,
+          21,
+          20,
+          19,
+          15
+        ],
+        "kinds_fixed": [
+          "boundary",
+          "boundary",
+          "spurious",
+          "boundary",
+          "boundary"
+        ]
+      }
+    ]
+  },
+  "curation": {
+    "policy": "delta-screen v3 (enumeration signature, sequestered arbiter) + sequestration",
+    "admitted": [
+      "GL003",
+      "GL016",
+      "GL453",
+      "verse097",
+      "verse108",
+      "verse509",
+      "verse537",
+      "verse539",
+      "verse620",
+      "verse631",
+      "verse646",
+      "verse650",
+      "verse820"
+    ],
+    "refused": [],
+    "refusal_reason": null,
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 0,
+      "n_relabel_levels": 1,
+      "offset_histogram": {
+        "-2": 1
+      },
+      "relabel_case_frac": 0.0,
+      "modal_offset": -2,
+      "offset_consensus": 1.0
+    }
+  },
+  "training": {
+    "ids": [
+      "GL003",
+      "GL016",
+      "GL453",
+      "verse097",
+      "verse108",
+      "verse509",
+      "verse537",
+      "verse539",
+      "verse620",
+      "verse631",
+      "verse646",
+      "verse650",
+      "verse820",
+      "verse113",
+      "verse544",
+      "verse565",
+      "verse760"
+    ],
+    "mix": {
+      "n_new": 13,
+      "n_rehearsal": 4,
+      "rehearsal_frac_requested": 0.25,
+      "rehearsal_frac_actual": 0.23529411764705882,
+      "rehearsal_ids": [
+        "verse113",
+        "verse544",
+        "verse565",
+        "verse760"
+      ]
+    }
+  },
+  "loss_final": 1.0088,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.3549,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.5539,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.6146,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 106343.4,
+    "apl_mm_total": 2738724.9,
+    "surface_dice_median": 0.5786,
+    "kinds": {
+      "mixed": 15,
+      "boundary": 9
+    }
+  },
+  "promotion": {
+    "promoted": false,
+    "reasons": [
+      "forgetting gate: thoracic: 0.651 -> 0.554 (drop 0.097 > 0.05)"
+    ],
+    "evidence": {
+      "apl_gain_frac_vs_do_nothing": 0.0518,
+      "apl_gain_ci95": [
+        -0.0064,
+        0.1032
+      ],
+      "unserved_regions": [
+        {
+          "region": "cervical",
+          "median": [
+            0.0209,
+            0.3549
+          ],
+          "n_cases": 9,
+          "mean_change_ci95": [
+            0.1504,
+            0.4148
+          ]
+        }
+      ],
+      "forgetting": {
+        "cervical": {
+          "incumbent": 0.0209,
+          "candidate": 0.3549,
+          "drop": -0.334
+        },
+        "thoracic": {
+          "incumbent": 0.6507,
+          "candidate": 0.5539,
+          "drop": 0.0968
+        },
+        "lumbar": {
+          "incumbent": 0.6306,
+          "candidate": 0.6146,
+          "drop": 0.016
+        }
+      }
+    }
+  },
+  "mlflow_run_id": "871aa513f3fc49cdb05e89aa580c04bf",
+  "dvc": {
+    "path": "outputs/corrector/s2027_budget_region_masked/round4/model.pt",
+    "added": true,
+    "pushed": true
+  },
+  "seconds": 645.0
+}
