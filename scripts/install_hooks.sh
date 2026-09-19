@@ -13,9 +13,12 @@ PY="${CLLOOP_PY:-python3}"
 "$PY" -m pytest -q -p no:cacheprovider tests/test_public_hygiene.py \
   || { echo "pre-commit: public-hygiene guard FAILED — commit refused" >&2; exit 1; }
 if command -v detect-secrets-hook >/dev/null 2>&1; then
-  # *.dvc pointers are md5 content hashes by design — high-entropy, not secret
+  # *.dvc pointers are md5 content hashes by design — high-entropy, not secret;
+  # pure-base64 lines are embedded report figures, where key-shaped substrings
+  # occur by chance (the hygiene test above still scans those files whole)
   git diff --cached --name-only --diff-filter=ACM -z \
     | xargs -0 -r detect-secrets-hook --exclude-files '\.dvc$' \
+        --exclude-lines '^[A-Za-z0-9+/=]{200,}' \
     || { echo "pre-commit: detect-secrets flagged a staged file" >&2; exit 1; }
 fi
 HOOK_EOF

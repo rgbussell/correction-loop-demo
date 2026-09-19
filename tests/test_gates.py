@@ -293,3 +293,61 @@ def test_banded_verdicts_pinned_from_the_real_band():
     assert got[("s2027", 2)] == (False, False)  # a real regression still refuses
     assert got[("s3117", 2)] == (False, False)  # +1.5% with nothing opened still refuses
     assert out["n_promotions_lost"] == 0 and out["fixed_bar_reproduces_record"]
+
+
+# ------------------------------------------- the more-training control (W9)
+def _judge_ctrl(inc, cand, ctrl):
+    ia, ca = _agg(inc), _agg(cand)
+    return decide_promotion_banded(ia, ca, inc, cand, control_per_case=ctrl,
+                                   forgetting=check_forgetting(ia, ca))
+
+
+def test_control_identical_to_candidate_neither_vetoes_nor_credits():
+    base = [100000 + 3000 * i for i in range(24)]
+    inc = _cases(base, lum=[0.7] * 24)
+    cand = _cases([x * 0.9 for x in base], lum=[0.7] * 24)
+    d = _judge_ctrl(inc, cand, cand)
+    assert d.promoted
+    assert d.evidence["vs_more_training_control"]["beats_control"] is False
+
+
+def test_candidate_significantly_worse_than_control_is_refused():
+    """Beats do-nothing, but extra steps on OLD data beat it by more: the
+    arriving corrections subtracted value."""
+    base = [100000 + 3000 * i for i in range(24)]
+    inc = _cases(base, lum=[0.7] * 24)
+    d = _judge_ctrl(inc, _cases([x * 0.95 for x in base], lum=[0.7] * 24),
+                    _cases([x * 0.80 for x in base], lum=[0.7] * 24))
+    assert not d.promoted and "more-training control" in d.reasons[0]
+
+
+def test_control_inside_noise_does_not_veto():
+    import numpy as np
+
+    rng = np.random.default_rng(11)
+    base = rng.uniform(50000, 150000, 24)
+    inc = _cases(base, lum=[0.7] * 24)
+    cand = _cases(base * 0.88, lum=[0.7] * 24)
+    ctrl = _cases(base * 0.88 * rng.normal(1.0, 0.1, 24), lum=[0.7] * 24)
+    assert _judge_ctrl(inc, cand, ctrl).promoted
+
+
+def test_control_must_cover_the_same_sequestered_cases():
+    base = [100000.0] * 24
+    inc = _cases(base, lum=[0.7] * 24)
+    with pytest.raises(ValueError, match="control"):
+        _judge_ctrl(inc, inc, _cases(base[:23], lum=[0.7] * 23))
+
+
+def test_both_nulls_pinned_from_the_real_band():
+    """W9's table is the claim; pin it to the committed control-arm evals."""
+    out = json.loads((_REPO / "manifests" / "w9_control_rejudge.json").read_text())
+    assert out["complete"] and out["n_judged"] == 9
+    assert out["n_vetoed_by_control"] == 0
+    # round 1 is substantially an optimisation gain — in EVERY seed the control
+    # recovers a large share of it; the report must never again call it learning
+    assert all(x >= 0.4 for x in out["round1_gain_explained_by_more_training"])
+    # after round 1, more steps on old data hurt — the corrections do the work
+    assert (out["n_controls_worse_than_incumbent_after_round1"]
+            == out["n_rounds_after_round1"])
+    assert out["n_round4_beating_control_on_burden"] == 3

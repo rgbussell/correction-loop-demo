@@ -311,6 +311,7 @@ def decide_promotion_banded(
     *,
     control_eval: dict | None = None,
     forgetting: ForgettingVerdict | None = None,
+    control_per_case: list[dict] | None = None,
 ) -> PromotionDecision:
     """The recalibrated gate: uncertainty instead of a fixed bar.
 
@@ -393,6 +394,26 @@ def decide_promotion_banded(
             reasons.append(
                 f"loses to matched random control: {sum(b) / 1000:.0f} m vs "
                 f"{ctrl_apl / 1000:.0f} m — the curation policy subtracted value")
+
+    if control_per_case is not None:
+        # The more-training null (W9), judged with the same paired interval:
+        # refuse a candidate SIGNIFICANTLY worse than the control; whether it
+        # significantly beats the control is attribution evidence, not a veto.
+        ctrl = {c["case_id"]: c["apl_mm"] for c in control_per_case}
+        if set(ctrl) != set(ids):
+            raise ValueError("control evaluation covers different sequestered cases")
+        c = [ctrl[i] for i in ids]
+        c_gain = (sum(c) - sum(b)) / sum(c) if sum(c) > 0 else 0.0
+        c_lo, c_hi = _paired_ci(c, b, lambda x, y: (x.sum(1) - y.sum(1)) / x.sum(1))
+        evidence["vs_more_training_control"] = {
+            "apl_gain_frac": round(c_gain, 4), "ci95": [round(c_lo, 4), round(c_hi, 4)],
+            "beats_control": c_lo > 0,
+        }
+        if c_hi < 0:
+            reasons.append(
+                f"loses to the more-training control: gain {c_gain:+.1%}, paired 95% "
+                f"interval [{c_lo:+.1%}, {c_hi:+.1%}] wholly below zero — the arriving "
+                "corrections subtracted value that extra steps on old data did not")
 
     if forgetting is not None and not forgetting.passed:
         reasons.append("forgetting gate: " + "; ".join(forgetting.regressions))

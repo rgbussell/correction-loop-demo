@@ -163,6 +163,7 @@ def run_round(
     tag: str = "",
     force_admit: bool = False,
     out_root: Path | None = None,
+    control: str = "none",
 ) -> dict:
     """Execute round k and write outputs/rounds/round{k}{tag}/round.json.
 
@@ -174,7 +175,19 @@ def run_round(
     ``out_root`` relocates the whole round tree (default outputs/rounds) so
     seed replicates (W6) run side by side without colliding; the promotion
     chain is read from the SAME root, keeping each replicate self-contained.
+
+    ``control`` selects the MORE-TRAINING null (W9): ``"with"`` trains it
+    alongside an untagged round and hands it to the promotion gate; ``"only"``
+    (with a tag) trains just the control arm, to backfill rounds already run.
+    The control starts from the same incumbent with the same iterations and
+    seed at equal N, but its cohort is a random draw from ALREADY-SEEN cases —
+    no arriving batch — so it isolates the value of the new corrections from
+    the value of extra optimisation steps.
     """
+    if control not in ("none", "with", "only"):
+        raise ValueError(f"control must be none|with|only, got {control!r}")
+    if control == "only" and not tag:
+        raise ValueError("control='only' is an arm — pass a tag (e.g. _control)")
     t0 = time.time()
     cache_dir = repo / "data" / "cache"
     part = json.loads((repo / "manifests" / "partition.json").read_text())
@@ -297,13 +310,44 @@ def run_round(
         train_ids, mix = make_training_list(screen.admitted, seen,
                                             rehearsal_frac=rehearsal_frac, seed=seed + k)
         assert_sequestration(train_ids, test_ids)
+
+        def control_cohort() -> list[str]:
+            import random
+
+            past = sorted(set(seen) - set(screen.admitted))
+            return sorted(random.Random(seed + 1000 + k).sample(
+                past, min(len(train_ids), len(past))))
+
+        if control == "only":
+            train_ids = control_cohort()
+            assert_sequestration(train_ids, test_ids)
+            mix = {"n_new": 0, "n_rehearsal": len(train_ids),
+                   "note": "more-training null: equal N drawn from already-seen cases only"}
+            record["arm"] = "control"
         record["training"] = {"ids": train_ids, "mix": mix}
         data = {}
         for cid in train_ids:
-            is_new_poisoned = poisoned_round and cid in set(screen.admitted)
+            is_new_poisoned = (poisoned_round and control != "only"
+                               and cid in set(screen.admitted))
             data[cid] = load_folded(cid, is_new_poisoned)
         model, losses = train(data, iters=iters, seed=seed + k, device=device,
                               init_state=init_state)
+
+        control_ev = None
+        if control == "with" and not tag:
+            c_ids = control_cohort()
+            assert_sequestration(c_ids, test_ids)
+            c_model, _ = train({cid: load_folded(cid, False) for cid in c_ids},
+                               iters=iters, seed=seed + k, device=device,
+                               init_state=init_state)
+            control_ev = evaluate_on_test(c_model, test_ids, cache_dir, data_root, by_id,
+                                          device=device)
+            c_dir = rounds_root / f"round{k}_control"
+            c_dir.mkdir(parents=True, exist_ok=True)
+            (c_dir / "eval_per_case.json").write_text(
+                json.dumps(control_ev["per_case"], indent=2) + "\n")
+            record["control"] = {"ids": c_ids, "eval": control_ev["aggregate"]}
+            del c_model
 
     torch.save(model.state_dict(), out_dir / "model.pt")
     record["loss_final"] = round(float(np.mean(losses[-50:])), 4)
@@ -317,8 +361,10 @@ def run_round(
     if k > 0 and not tag:
         forgetting = check_forgetting(incumbent_eval, ev["aggregate"])
         inc_per_case = json.loads((inc_path.parent / "eval_per_case.json").read_text())
-        decision = decide_promotion_banded(incumbent_eval, ev["aggregate"], inc_per_case,
-                                           ev["per_case"], forgetting=forgetting)
+        decision = decide_promotion_banded(
+            incumbent_eval, ev["aggregate"], inc_per_case, ev["per_case"],
+            forgetting=forgetting,
+            control_per_case=control_ev["per_case"] if control_ev else None)
         record["promotion"] = {"promoted": decision.promoted,
                                "reasons": decision.reasons,
                                "evidence": decision.evidence}

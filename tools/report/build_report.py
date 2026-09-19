@@ -842,6 +842,105 @@ under-credits compositional gains — W16).</p>
 </div>
 '''
 
+    calib_html = ""
+    w15_p, w16_p, w9_p = (REPO / "manifests" / n for n in (
+        "w15_screen_v3.json", "w16_promotion_rejudge.json", "w9_control_rejudge.json"))
+    if w15_p.is_file() and w16_p.is_file() and w9_p.is_file():
+        w15, w16, w9 = (json.loads(x.read_text()) for x in (w15_p, w16_p, w9_p))
+        banded = {(r["chain"], r["round"]): r for r in w16["rows"]}
+        noise = w16["training_noise_round0"]
+
+        def pct(x):
+            return f"{x:+.1%}"
+
+        def ci(v):
+            return f"[{pct(v[0])}, {pct(v[1])}]"
+
+        rows_html = ""
+        for r in w9["rows"]:
+            b = banded[(r["chain"], r["round"])]
+            e, vc = b["evidence"], r["vs_control"]
+            a = r["apl_total_m"]
+            rows_html += (
+                f"<tr><td>{r['chain'][1:]}</td><td>{r['round']}</td>"
+                f"<td>{a['incumbent']:,.0f}</td><td>{a['control']:,.0f}</td>"
+                f"<td>{a['candidate']:,.0f}</td>"
+                f"<td>{pct(e['apl_gain_frac_vs_do_nothing'])} {ci(e['apl_gain_ci95'])}</td>"
+                f"<td>{pct(vc['apl_gain_frac'])} {ci(vc['ci95'])}</td>"
+                f"<td>{'<strong>promoted</strong> — ' + e['promoted_by'] if r['promoted_with_control'] else 'refused'}</td></tr>")
+        r1 = [r for r in w9["rows"] if r["round"] == 1]
+        later = [r for r in w9["rows"] if r["round"] > 1]
+        r4 = [r for r in w9["rows"] if r["round"] == 4]
+        n_ctrl_worse = sum(r["apl_total_m"]["control"] > r["apl_total_m"]["incumbent"]
+                           for r in later)
+        calib_html = f'''
+<h2>Step 8 — Calibration: the loop audits its own gates (W15, W16, W9)</h2>
+<div class="card">
+<p>The seed band left two gate defects and one untested commitment. This step measures
+before it fixes, and it <strong>corrects three statements made earlier in this report</strong>
+— they are left in place above, and superseded here, so the correction is visible.</p>
+<p><strong>1 · Who is shifted? (screen v3).</strong> The enumeration screen refused a clean
+batch in one replicate because the offset was the <em>model's</em> bias: the delta is
+(reference − prediction) and cannot say which side moved. Matching on offset
+<em>direction</em> would have been unsafe — +1 is both the poison and the commonest bias on
+clean batches. The discriminator is <em>rate</em>: the batch's rate of the modal offset
+against the incumbent's rate of that offset on the known-clean sequestered references.
+Re-judged over all {w15["n_rounds_judged"]} arriving batches: clean rounds refused
+{w15["clean_rounds_refused_v2"]} → {w15["clean_rounds_refused_v3"]}; poison refused
+{w15["poison_refused_seeds"]}/{w15["n_poison_rounds"]}. Stated cost: the screen now
+<em>reads</em> the sequestered set. It selects no training case, but it is a coupling.</p>
+<p><strong>2 · The promotion bar sat inside noise.</strong> Round 0 is the same data under
+three training seeds; total burden spreads by CV {noise["cv"]:.1%}
+({noise["max_pairwise_frac"]:.1%} end to end) against a fixed {noise["fixed_bar"]:.0%} bar.
+The gate now promotes on a paired-bootstrap 95% interval over the sequestered cases, or —
+because total burden is blind to <em>where</em> a gain lives — on a region the incumbent
+did not serve (median Dice &lt; 0.20) rising by ≥ 0.20 with its own interval excluding zero,
+burden not worse, nothing forgotten. The rule was fixed before any verdict was computed
+under it; the aggregate gains had already been seen, and that ordering is the honest
+limit. Result: {w16["n_flips"]} verdict moves ({"; ".join(w16["flips"])}),
+{w16["n_promotions_lost"]} promotions lost.</p>
+<p><strong>3 · The second null, actually trained.</strong> The design commitment above says
+every promotion beats two nulls. Until this step <strong>only one was ever trained</strong>.
+The control arm is the <em>more-training null</em>: same incumbent, same iterations and
+seed, equal N, cohort drawn only from already-seen cases. It asks whether a gain came from
+the new corrections or from more optimisation steps.</p>
+</div>
+<table>
+<tr><th>seed</th><th>round</th><th>incumbent (m)</th><th>control (m)</th><th>candidate (m)</th>
+<th>gain vs do-nothing [95%]</th><th>gain vs more-training [95%]</th><th>banded verdict</th></tr>
+{rows_html}
+</table>
+<div class="card">
+<p><strong>What the second null shows.</strong></p>
+<ul>
+<li><strong>Round 1 is substantially an optimisation gain.</strong> More steps on old data
+alone recover {", ".join(f"{r['gain_explained_by_more_training']:.0%}" for r in r1)} of
+the round-1 gain across the three seeds; only
+{sum(r["vs_control"]["beats_control"] for r in r1)} of {len(r1)} round-1 candidates beat the
+control beyond noise. The round-0 baseline was under-trained, and part of the headline
+end-to-end burden reduction is that, not learning from corrections.</li>
+<li><strong>After round 1, more steps on old data hurt.</strong> In {n_ctrl_worse} of
+{len(later)} later rounds the control ends <em>worse</em> than the incumbent it started
+from — extra optimisation on a small already-seen cohort overfits. There the new
+corrections are doing the work.</li>
+<li><strong>The cervical rounds are real against this null.</strong> All
+{sum(r["vs_control"]["beats_control"] for r in r4)} of {len(r4)} round-4 candidates beat the
+control on burden beyond noise, and on cervical Dice — even though their gain over
+<em>do-nothing</em> is inside noise. No candidate was vetoed by the control
+({w9["n_vetoed_by_control"]} of {w9["n_judged"]}).</li>
+</ul>
+<p><strong>Corrections to this report.</strong> (a) "Every promotion beats two nulls" was a
+commitment, not yet a fact, when first written. (b) "Every promoted step individually beat
+the do-nothing null (+10.0%, +9.0%, +8.5%)" holds as point estimates only: with intervals,
+the round-4 gain does not exclude zero in any seed, and those promotions stand on the
+unserved-region clause, which rests on 9 cervical test cases. (c) "The gate never promoted
+noise" is not supportable for round 4 on burden alone. The predictions recorded before the
+control arms were trained were also wrong in both directions — early rounds were expected
+to beat the control clearly and the cervical rounds were not — and are kept in the
+program log as written.</p>
+</div>
+'''
+
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -853,7 +952,7 @@ under-credits compositional gains — W16).</p>
 seen refusing a bad round. Open data (VerSe 2020, CC&nbsp;BY-SA&nbsp;4.0), MIT code.
 Updated {date.today().isoformat()} ·
 {("W0–W4: " + str(len(rounds)) + " rounds + " + str(len(arms)) + " arms, tracked") if arms else (("W0–W2: " + str(len(rounds)) + " round(s) run") if rounds else ("W0–W1 complete" if w1 else "W0 complete"))}
-<span class="badge">{"28/28" if arms else ("17/17" if rounds else ("12/12" if w1 else "5/5"))} tests passing</span></p>
+<span class="badge">test suite passing</span></p>
 
 {f"""
 <div class="card" style="border-left: 4px solid #2a78d6;">
@@ -862,7 +961,9 @@ Updated {date.today().isoformat()} ·
 <li><strong>The method works:</strong> total correction burden fell
 {rounds[0]["eval"]["apl_mm_total"] / 1000:,.0f} → {rounds[-1]["eval"]["apl_mm_total"] / 1000:,.0f} m
 (−{(rounds[0]["eval"]["apl_mm_total"] - rounds[-1]["eval"]["apl_mm_total"]) / rounds[0]["eval"]["apl_mm_total"]:.1%})
-across the 5-round deployment; every promotion beat the do-nothing null.</li>
+across the 5-round deployment; every promotion beat the do-nothing null as a point
+estimate (with intervals, and against a second null, see Step 8 — part of the round-1 gain
+is extra optimisation, not corrections).</li>
 <li><strong>Learning without forgetting:</strong> cervical Dice 0.03 → 0.54 as the world
 shifted; thoraco-lumbar held under the 25% rehearsal mix.</li>
 <li><strong>The loop defended itself:</strong> the poisoned batch was refused before any
@@ -892,7 +993,7 @@ promoted only if it beats explicit null controls. The demo's job is to show the
 <li><strong>Sequestration is a refusal, not a filter.</strong> Held-out test cases raising an
 error on contact with curation — never silently dropped.</li>
 <li><strong>Every promotion beats two nulls.</strong> A matched random cohort at equal N, and
-do-nothing. Improvement that can't beat "just add any cases" proves nothing about
+do-nothing. (The second null was not trained until Step 8; see the correction there.) Improvement that can't beat "just add any cases" proves nothing about
 the selection rule.</li>
 <li><strong>One batch is poisoned on purpose</strong> (wrong-level enumeration). A loop that
 cannot be seen refusing a bad batch is theater.</li>
@@ -963,7 +1064,7 @@ Originals are never touched; poisoned copies live outside git in
 {poison["n_cases"]} cases, {sum(len(c["label_map"]) for c in poison["cases"])} labels shifted in total.</p>
 </div>
 
-{w1_html}\n{w2_html}\n{w4_html}\n{w6_html}\n<h2>What exists so far</h2>
+{w1_html}\n{w2_html}\n{w4_html}\n{w6_html}\n{calib_html}\n<h2>What exists so far</h2>
 <div class="card">
 <table>
 <tr><th>Artifact</th><th>What it is</th></tr>

@@ -1,0 +1,290 @@
+[
+  {
+    "case_id": "GL364",
+    "region_dice": {
+      "cervical": 0.7379,
+      "thoracic": 0.6027,
+      "lumbar": null,
+      "sacrum": null
+    },
+    "apl_mm": 31055.8,
+    "surface_dice": 0.8187,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse033",
+    "region_dice": {
+      "cervical": 0.0196,
+      "thoracic": 0.3867,
+      "lumbar": 0.7922,
+      "sacrum": null
+    },
+    "apl_mm": 73256.0,
+    "surface_dice": 0.5821,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse056",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.3819,
+      "lumbar": 0.2307,
+      "sacrum": null
+    },
+    "apl_mm": 64985.0,
+    "surface_dice": 0.3974,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse091",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.6713,
+      "lumbar": 0.7002,
+      "sacrum": null
+    },
+    "apl_mm": 114288.0,
+    "surface_dice": 0.7266,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse503",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.5565,
+      "lumbar": 0.7491,
+      "sacrum": null
+    },
+    "apl_mm": 73141.9,
+    "surface_dice": 0.6786,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse506",
+    "region_dice": {
+      "cervical": 0.0433,
+      "thoracic": 0.745,
+      "lumbar": 0.7029,
+      "sacrum": null
+    },
+    "apl_mm": 108416.5,
+    "surface_dice": 0.7084,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse510",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.7872,
+      "lumbar": 0.7035,
+      "sacrum": null
+    },
+    "apl_mm": 75717.4,
+    "surface_dice": 0.8064,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse512",
+    "region_dice": {
+      "cervical": 0.047,
+      "thoracic": 0.3712,
+      "lumbar": 0.1769,
+      "sacrum": null
+    },
+    "apl_mm": 142675.4,
+    "surface_dice": 0.3814,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse521",
+    "region_dice": {
+      "cervical": 0.4237,
+      "thoracic": 0.8314,
+      "lumbar": 0.8584,
+      "sacrum": null
+    },
+    "apl_mm": 52350.1,
+    "surface_dice": 0.9026,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse533",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.7914,
+      "lumbar": 0.7699,
+      "sacrum": null
+    },
+    "apl_mm": 177548.6,
+    "surface_dice": 0.7458,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse552",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.8153,
+      "lumbar": 0.7809,
+      "sacrum": null
+    },
+    "apl_mm": 61732.1,
+    "surface_dice": 0.8102,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse558",
+    "region_dice": {
+      "cervical": 0.0205,
+      "thoracic": 0.0383,
+      "lumbar": 0.554,
+      "sacrum": null
+    },
+    "apl_mm": 297318.6,
+    "surface_dice": 0.4873,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse560",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.1704,
+      "lumbar": 0.1511,
+      "sacrum": null
+    },
+    "apl_mm": 179037.3,
+    "surface_dice": 0.2611,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse561",
+    "region_dice": {
+      "cervical": 0.0079,
+      "thoracic": 0.245,
+      "lumbar": 0.3597,
+      "sacrum": null
+    },
+    "apl_mm": 189932.7,
+    "surface_dice": 0.4307,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse570",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.7805,
+      "lumbar": 0.5586,
+      "sacrum": null
+    },
+    "apl_mm": 122433.9,
+    "surface_dice": 0.6879,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse584",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.7042,
+      "lumbar": 0.3941,
+      "sacrum": null
+    },
+    "apl_mm": 61679.1,
+    "surface_dice": 0.4972,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse596",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.7076,
+      "lumbar": null,
+      "sacrum": null
+    },
+    "apl_mm": 47458.5,
+    "surface_dice": 0.6613,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse616",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.7164,
+      "lumbar": 0.7489,
+      "sacrum": null
+    },
+    "apl_mm": 84694.2,
+    "surface_dice": 0.7975,
+    "kind": "relabel"
+  },
+  {
+    "case_id": "verse649",
+    "region_dice": {
+      "cervical": 0.0009,
+      "thoracic": 0.4415,
+      "lumbar": 0.5272,
+      "sacrum": null
+    },
+    "apl_mm": 211030.0,
+    "surface_dice": 0.4565,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse700",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.028,
+      "lumbar": 0.4107,
+      "sacrum": null
+    },
+    "apl_mm": 66431.7,
+    "surface_dice": 0.3233,
+    "kind": "mixed"
+  },
+  {
+    "case_id": "verse708",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.822,
+      "lumbar": 0.8916,
+      "sacrum": null
+    },
+    "apl_mm": 30892.5,
+    "surface_dice": 0.8628,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse712",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.821,
+      "lumbar": 0.8405,
+      "sacrum": null
+    },
+    "apl_mm": 31613.8,
+    "surface_dice": 0.8174,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse766",
+    "region_dice": {
+      "cervical": 0.0062,
+      "thoracic": 0.7359,
+      "lumbar": 0.7823,
+      "sacrum": null
+    },
+    "apl_mm": 152147.3,
+    "surface_dice": 0.7215,
+    "kind": "boundary"
+  },
+  {
+    "case_id": "verse824",
+    "region_dice": {
+      "cervical": null,
+      "thoracic": 0.8297,
+      "lumbar": 0.913,
+      "sacrum": null
+    },
+    "apl_mm": 17905.5,
+    "surface_dice": 0.9136,
+    "kind": "boundary"
+  }
+]
