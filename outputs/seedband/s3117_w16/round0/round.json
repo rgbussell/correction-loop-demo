@@ -1,0 +1,70 @@
+{
+  "round": 0,
+  "seed": 3117,
+  "iters": 2000,
+  "training": {
+    "ids": [
+      "GL090",
+      "GL240",
+      "GL348",
+      "verse004",
+      "verse005",
+      "verse008",
+      "verse015",
+      "verse031",
+      "verse055",
+      "verse085",
+      "verse092",
+      "verse113",
+      "verse122",
+      "verse127",
+      "verse154",
+      "verse504",
+      "verse507",
+      "verse514",
+      "verse527",
+      "verse535",
+      "verse541",
+      "verse544",
+      "verse546",
+      "verse565",
+      "verse619",
+      "verse629",
+      "verse704",
+      "verse808",
+      "verse818",
+      "verse833"
+    ],
+    "mix": {
+      "n_new": 0,
+      "n_rehearsal": 0,
+      "note": "round 0 = initial pool baseline"
+    }
+  },
+  "loss_final": 0.7767,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.0,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.6702,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.6815,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 98366.4,
+    "apl_mm_total": 2838331.8,
+    "surface_dice_median": 0.5912,
+    "kinds": {
+      "mixed": 14,
+      "boundary": 10
+    }
+  },
+  "mlflow_run_id": "d0774c9c6f3e4015ab8ceaa8a6ae4188",
+  "dvc": {
+    "path": "outputs/seedband/s3117/round0/model.pt",
+    "added": true,
+    "pushed": true
+  },
+  "seconds": 735.0
+}

@@ -31,7 +31,7 @@ from .delta import score_case
 from .gates import (
     assert_sequestration,
     check_forgetting,
-    decide_promotion,
+    decide_promotion_banded,
     screen_batch,
 )
 from .model import fold_labels, make_model, make_training_list, predict, train
@@ -316,8 +316,9 @@ def run_round(
     #    ablation arms never enter the promotion chain)
     if k > 0 and not tag:
         forgetting = check_forgetting(incumbent_eval, ev["aggregate"])
-        decision = decide_promotion(incumbent_eval, ev["aggregate"],
-                                    forgetting=forgetting)
+        inc_per_case = json.loads((inc_path.parent / "eval_per_case.json").read_text())
+        decision = decide_promotion_banded(incumbent_eval, ev["aggregate"], inc_per_case,
+                                           ev["per_case"], forgetting=forgetting)
         record["promotion"] = {"promoted": decision.promoted,
                                "reasons": decision.reasons,
                                "evidence": decision.evidence}

@@ -198,3 +198,98 @@ def test_v3_same_direction_is_not_enough():
 def test_v3_unusable_arbiter_leaves_the_refusal_standing():
     deltas = [_delta(f"c{i}", "relabel", [1] * 8) for i in range(13)]
     assert screen_batch(deltas, arbiter={"n_levels": 0, "offset_histogram": {}}).batch_refused
+
+
+# ------------------------------------------- banded promotion gate (W16)
+from clloop.gates import decide_promotion_banded  # noqa: E402
+
+
+def _cases(apl, cerv=None, lum=None):
+    return [{"case_id": f"t{i}", "apl_mm": float(a),
+             "region_dice": {"cervical": None if cerv is None else cerv[i],
+                             "thoracic": None,
+                             "lumbar": None if lum is None else lum[i],
+                             "sacrum": None}} for i, a in enumerate(apl)]
+
+
+def _agg(cases):
+    import numpy as np
+
+    out = {"apl_mm_total": sum(c["apl_mm"] for c in cases)}
+    for reg in ("cervical", "thoracic", "lumbar", "sacrum"):
+        v = [c["region_dice"][reg] for c in cases if c["region_dice"][reg] is not None]
+        out[f"dice_{reg}_median"] = float(np.median(v)) if v else None
+    return out
+
+
+def _judge(inc, cand):
+    ia, ca = _agg(inc), _agg(cand)
+    return decide_promotion_banded(ia, ca, inc, cand, forgetting=check_forgetting(ia, ca))
+
+
+def test_banded_refuses_do_nothing():
+    """THE degeneracy check: the incumbent over itself must not promote."""
+    inc = _cases([100000 + 3000 * i for i in range(24)], cerv=[0.0] * 24, lum=[0.7] * 24)
+    d = _judge(inc, inc)
+    assert not d.promoted and d.evidence["apl_gain_ci95"] == [0.0, 0.0]
+
+
+def test_banded_refuses_pure_noise():
+    """Symmetric per-case noise with a slightly positive total — exactly the
+    case a fixed bar promotes by coin flip. Twenty draws, none may promote."""
+    import numpy as np
+
+    rng = np.random.default_rng(7)
+    base = rng.uniform(50000, 150000, 24)
+    inc = _cases(base, lum=[0.7] * 24)
+    promoted = sum(_judge(inc, _cases(base * rng.normal(1.0, 0.15, 24), lum=[0.7] * 24)).promoted
+                   for _ in range(20))
+    assert promoted <= 1  # a 95% interval may err ~1 in 40 on one side
+
+
+def test_banded_promotes_a_consistent_gain():
+    base = [100000 + 3000 * i for i in range(24)]
+    d = _judge(_cases(base, lum=[0.7] * 24), _cases([x * 0.9 for x in base], lum=[0.7] * 24))
+    assert d.promoted and d.evidence["promoted_by"] == "burden"
+
+
+def test_region_clause_credits_an_opened_region_with_noisy_burden():
+    import numpy as np
+
+    rng = np.random.default_rng(3)
+    base = rng.uniform(50000, 150000, 24)
+    inc = _cases(base, cerv=[0.0] * 24, lum=[0.7] * 24)
+    cand = _cases(base * rng.normal(0.99, 0.2, 24), cerv=list(rng.uniform(0.4, 0.7, 24)),
+                  lum=[0.7] * 24)
+    d = _judge(inc, cand)
+    assert d.evidence["apl_gain_ci95"][0] <= 0  # burden alone would not carry it
+    assert d.evidence["apl_gain_frac_vs_do_nothing"] >= 0
+    assert d.promoted and "cervical" in d.evidence["promoted_by"]
+
+
+def test_region_clause_cannot_buy_forgetting_or_a_burden_cost():
+    base = [100000.0] * 24
+    inc = _cases(base, cerv=[0.0] * 24, lum=[0.7] * 24)
+    forgot = _judge(inc, _cases(base, cerv=[0.6] * 24, lum=[0.5] * 24))
+    assert not forgot.promoted and any("forgetting" in r for r in forgot.reasons)
+    costly = _judge(inc, _cases([x * 1.05 for x in base], cerv=[0.6] * 24, lum=[0.7] * 24))
+    assert not costly.promoted and "COST" in costly.reasons[0]
+
+
+def test_region_clause_ignores_regions_already_served():
+    """A served region improving is ordinary gain — it goes through burden."""
+    base = [100000.0 + 1000 * (i % 5) for i in range(24)]
+    inc = _cases(base, cerv=[0.5] * 24, lum=[0.7] * 24)
+    d = _judge(inc, _cases(base, cerv=[0.9] * 24, lum=[0.7] * 24))
+    assert not d.promoted and "unserved_regions" not in d.evidence
+
+
+def test_banded_verdicts_pinned_from_the_real_band():
+    """The re-judgement table is the claim; pin it to the committed evals."""
+    out = json.loads((_REPO / "manifests" / "w16_promotion_rejudge.json").read_text())
+    got = {(r["chain"], r["round"]): (r["fixed_bar_promoted"], r["banded_promoted"])
+           for r in out["rows"]}
+    assert got[("s3117", 4)] == (False, True)   # the round the fixed bar lost to noise
+    assert got[("s2027", 2)] == (False, False)  # a real regression still refuses
+    assert got[("s3117", 2)] == (False, False)  # +1.5% with nothing opened still refuses
+    assert out["n_promotions_lost"] == 0 and out["fixed_bar_reproduces_record"]

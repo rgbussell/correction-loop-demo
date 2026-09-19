@@ -1,0 +1,238 @@
+{
+  "training_noise_round0": {
+    "apl_total_m": [
+      2730.2,
+      2888.4,
+      2838.3
+    ],
+    "cv": 0.0287,
+    "max_pairwise_frac": 0.0561,
+    "fixed_bar": 0.02,
+    "fixed_bar_inside_noise": true
+  },
+  "n_candidates": 9,
+  "n_flips": 1,
+  "flips": [
+    "s3117 round 4: refused -> promoted"
+  ],
+  "n_promotions_lost": 0,
+  "n_promotions_gained": 1,
+  "fixed_bar_reproduces_record": true,
+  "rows": [
+    {
+      "chain": "s1337",
+      "round": 1,
+      "recorded_promoted": true,
+      "fixed_bar_promoted": true,
+      "banded_promoted": true,
+      "flipped": false,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.1004,
+        "apl_gain_ci95": [
+          0.0224,
+          0.1678
+        ],
+        "promoted_by": "burden"
+      }
+    },
+    {
+      "chain": "s1337",
+      "round": 2,
+      "recorded_promoted": true,
+      "fixed_bar_promoted": true,
+      "banded_promoted": true,
+      "flipped": false,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.0901,
+        "apl_gain_ci95": [
+          0.0188,
+          0.1579
+        ],
+        "promoted_by": "burden"
+      }
+    },
+    {
+      "chain": "s1337",
+      "round": 4,
+      "recorded_promoted": true,
+      "fixed_bar_promoted": true,
+      "banded_promoted": true,
+      "flipped": false,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.0853,
+        "apl_gain_ci95": [
+          -0.0358,
+          0.1991
+        ],
+        "unserved_regions": [
+          {
+            "region": "cervical",
+            "median": [
+              0.0,
+              0.5389
+            ],
+            "n_cases": 9,
+            "mean_change_ci95": [
+              0.1936,
+              0.4411
+            ]
+          }
+        ],
+        "promoted_by": "unserved-region (cervical)"
+      }
+    },
+    {
+      "chain": "s2027",
+      "round": 1,
+      "recorded_promoted": true,
+      "fixed_bar_promoted": true,
+      "banded_promoted": true,
+      "flipped": false,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.2028,
+        "apl_gain_ci95": [
+          0.1317,
+          0.2625
+        ],
+        "promoted_by": "burden"
+      }
+    },
+    {
+      "chain": "s2027",
+      "round": 2,
+      "recorded_promoted": false,
+      "fixed_bar_promoted": false,
+      "banded_promoted": false,
+      "flipped": false,
+      "banded_reasons": [
+        "fails do-nothing null: APL gain -12.4%, paired 95% interval [-18.5%, -7.3%] does not exclude zero; no unserved region opened",
+        "forgetting gate: thoracic: 0.722 -> 0.645 (drop 0.077 > 0.05)"
+      ],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": -0.1243,
+        "apl_gain_ci95": [
+          -0.1855,
+          -0.0726
+        ],
+        "forgetting": {
+          "cervical": {
+            "incumbent": 0.1667,
+            "candidate": 0.0,
+            "drop": 0.1667
+          },
+          "thoracic": {
+            "incumbent": 0.7219,
+            "candidate": 0.645,
+            "drop": 0.0769
+          },
+          "lumbar": {
+            "incumbent": 0.6485,
+            "candidate": 0.6088,
+            "drop": 0.0397
+          }
+        }
+      }
+    },
+    {
+      "chain": "s2027",
+      "round": 4,
+      "recorded_promoted": true,
+      "fixed_bar_promoted": true,
+      "banded_promoted": true,
+      "flipped": false,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.0771,
+        "apl_gain_ci95": [
+          -0.0238,
+          0.1727
+        ],
+        "unserved_regions": [
+          {
+            "region": "cervical",
+            "median": [
+              0.1667,
+              0.4906
+            ],
+            "n_cases": 9,
+            "mean_change_ci95": [
+              0.0921,
+              0.352
+            ]
+          }
+        ],
+        "promoted_by": "unserved-region (cervical)"
+      }
+    },
+    {
+      "chain": "s3117",
+      "round": 1,
+      "recorded_promoted": true,
+      "fixed_bar_promoted": true,
+      "banded_promoted": true,
+      "flipped": false,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.177,
+        "apl_gain_ci95": [
+          0.0946,
+          0.2458
+        ],
+        "promoted_by": "burden"
+      }
+    },
+    {
+      "chain": "s3117",
+      "round": 2,
+      "recorded_promoted": false,
+      "fixed_bar_promoted": false,
+      "banded_promoted": false,
+      "flipped": false,
+      "banded_reasons": [
+        "fails do-nothing null: APL gain +1.5%, paired 95% interval [-5.3%, +7.7%] does not exclude zero; no unserved region opened"
+      ],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.0148,
+        "apl_gain_ci95": [
+          -0.0531,
+          0.0768
+        ]
+      }
+    },
+    {
+      "chain": "s3117",
+      "round": 4,
+      "recorded_promoted": false,
+      "fixed_bar_promoted": false,
+      "banded_promoted": true,
+      "flipped": true,
+      "banded_reasons": [],
+      "evidence": {
+        "apl_gain_frac_vs_do_nothing": 0.0195,
+        "apl_gain_ci95": [
+          -0.0786,
+          0.1139
+        ],
+        "unserved_regions": [
+          {
+            "region": "cervical",
+            "median": [
+              0.0603,
+              0.5795
+            ],
+            "n_cases": 9,
+            "mean_change_ci95": [
+              0.1159,
+              0.4348
+            ]
+          }
+        ],
+        "promoted_by": "unserved-region (cervical)"
+      }
+    }
+  ]
+}

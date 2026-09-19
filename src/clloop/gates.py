@@ -28,6 +28,10 @@ planted-defect test proving it can be seen firing.
    (when a control arm was trained) the matched random-control candidate.
    The gate's own degeneracy check: a do-nothing candidate must NOT pass —
    a gate that promotes the incumbent over itself is measuring noise.
+   `decide_promotion` is the original fixed-bar gate, kept callable as the
+   before-picture; the engine uses `decide_promotion_banded` (W16), which
+   replaces the fixed bar with a paired-bootstrap interval and credits a
+   newly opened region — same nulls, same degeneracy check.
 """
 
 from __future__ import annotations
@@ -278,4 +282,122 @@ def decide_promotion(
         reasons.append("forgetting gate: " + "; ".join(forgetting.regressions))
         evidence["forgetting"] = forgetting.detail
 
+    return PromotionDecision(not reasons, reasons, evidence)
+
+
+# ------------------------------------------------- promotion, band-aware (W16)
+UNSERVED_FLOOR = 0.20   # same "knew" floor the forgetting gate uses
+UNSERVED_MIN_RISE = 0.20
+
+
+def _paired_ci(a, b, stat, *, n_boot: int = 10000, seed: int = 0) -> tuple[float, float]:
+    """95% percentile interval of ``stat(a*, b*)`` under a PAIRED case
+    bootstrap — the same resampled cases for both arms, because candidate and
+    incumbent are scored on the same sequestered cases. Seeded: the gate is a
+    decision procedure and must return the same verdict twice."""
+    import numpy as np
+
+    a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+    idx = np.random.default_rng(seed).integers(0, len(a), (n_boot, len(a)))
+    lo, hi = np.percentile(stat(a[idx], b[idx]), [2.5, 97.5])
+    return float(lo), float(hi)
+
+
+def decide_promotion_banded(
+    incumbent_eval: dict,
+    candidate_eval: dict,
+    incumbent_per_case: list[dict],
+    candidate_per_case: list[dict],
+    *,
+    control_eval: dict | None = None,
+    forgetting: ForgettingVerdict | None = None,
+) -> PromotionDecision:
+    """The recalibrated gate: uncertainty instead of a fixed bar.
+
+    The fixed 2.0% bar was measured to sit INSIDE training noise: the same
+    initial pool trained under three seeds spreads total burden by CV 2.9%
+    (5.6% end to end). A fixed bar inside noise refuses and promotes by coin
+    flip near the line. The rule, fixed before any verdict was re-judged:
+
+    A. **Burden clause** — promote if the paired-bootstrap 95% lower bound of
+       the APL gain over the sequestered cases is > 0: the candidate beats
+       do-nothing by more than case-sampling noise.
+    B. **Unserved-region clause** — else promote if some region the incumbent
+       did not serve (median Dice < 0.20) rises by >= 0.20 in median Dice,
+       the paired 95% interval of its per-case Dice change excludes zero, and
+       the burden point estimate is not negative. Total APL is blind to gain
+       COMPOSITION; opening a region is the loop's purpose under case-mix
+       shift, and it must not be vetoed by noise in regions already served.
+
+    Neither clause weakens the nulls. A do-nothing candidate has every paired
+    difference exactly 0 -> interval [0, 0] -> lower bound not > 0, and no
+    region rises: it fails both (the degeneracy check, tested). The forgetting
+    gate and the matched-control null apply to BOTH clauses unchanged.
+    """
+    import numpy as np
+
+    reasons: list[str] = []
+    inc = {c["case_id"]: c for c in incumbent_per_case}
+    cand = {c["case_id"]: c for c in candidate_per_case}
+    if set(inc) != set(cand):
+        raise ValueError("per-case evaluations cover different sequestered cases")
+    ids = sorted(inc)
+    a = [inc[i]["apl_mm"] for i in ids]
+    b = [cand[i]["apl_mm"] for i in ids]
+    gain = (sum(a) - sum(b)) / sum(a) if sum(a) > 0 else 0.0
+    lo, hi = _paired_ci(a, b, lambda x, y: (x.sum(1) - y.sum(1)) / x.sum(1))
+    evidence: dict = {"apl_gain_frac_vs_do_nothing": round(gain, 4),
+                      "apl_gain_ci95": [round(lo, 4), round(hi, 4)]}
+    burden_ok = lo > 0
+
+    opened = []
+    for reg in ("cervical", "thoracic", "lumbar", "sacrum"):
+        i_med = incumbent_eval.get(f"dice_{reg}_median")
+        c_med = candidate_eval.get(f"dice_{reg}_median")
+        if i_med is None or c_med is None or i_med >= UNSERVED_FLOOR:
+            continue
+        if c_med - i_med < UNSERVED_MIN_RISE:
+            continue
+        pairs = [(inc[i]["region_dice"][reg], cand[i]["region_dice"][reg]) for i in ids
+                 if inc[i]["region_dice"].get(reg) is not None
+                 and cand[i]["region_dice"].get(reg) is not None]
+        if len(pairs) < 3:
+            continue
+        r_lo, r_hi = _paired_ci([p[0] for p in pairs], [p[1] for p in pairs],
+                                lambda x, y: (y - x).mean(1))
+        rec = {"region": reg, "median": [i_med, c_med], "n_cases": len(pairs),
+               "mean_change_ci95": [round(r_lo, 4), round(r_hi, 4)]}
+        evidence.setdefault("unserved_regions", []).append(rec)
+        if r_lo > 0:
+            opened.append(reg)
+    region_ok = bool(opened) and gain >= 0
+
+    if burden_ok:
+        evidence["promoted_by"] = "burden"
+    elif region_ok:
+        evidence["promoted_by"] = f"unserved-region ({', '.join(opened)})"
+    else:
+        why = (f"fails do-nothing null: APL gain {gain:+.1%}, paired 95% interval "
+               f"[{lo:+.1%}, {hi:+.1%}] does not exclude zero")
+        if opened and gain < 0:
+            why += f"; opened {', '.join(opened)} but at a net burden COST"
+        elif not opened:
+            why += "; no unserved region opened"
+        reasons.append(why)
+
+    if control_eval is not None:
+        ctrl_apl = float(control_eval["apl_mm_total"])
+        evidence["apl_vs_random_control"] = {"candidate_m": round(sum(b) / 1000, 1),
+                                             "control_m": round(ctrl_apl / 1000, 1)}
+        if sum(b) > ctrl_apl:
+            reasons.append(
+                f"loses to matched random control: {sum(b) / 1000:.0f} m vs "
+                f"{ctrl_apl / 1000:.0f} m — the curation policy subtracted value")
+
+    if forgetting is not None and not forgetting.passed:
+        reasons.append("forgetting gate: " + "; ".join(forgetting.regressions))
+        evidence["forgetting"] = forgetting.detail
+
+    if reasons:
+        evidence.pop("promoted_by", None)
     return PromotionDecision(not reasons, reasons, evidence)
