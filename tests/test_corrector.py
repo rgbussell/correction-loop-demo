@@ -105,3 +105,98 @@ def test_the_real_chain_result_is_pinned():
     assert eff["cervical"]["fixed_frac"] < 0.15 < eff["lumbar"]["fixed_frac"]
     scatter = json.loads((repo / "manifests" / "w7_jitter_scatter.json").read_text())["arms"]
     assert scatter["budget_jitter"]["min_fg_bbox_frac"] > scatter["budget"]["max_fg_bbox_frac"]
+
+
+# ---------------------------------------- W17: reviewed regions only
+from clloop.corrector import IGNORE  # noqa: E402
+
+
+def test_mask_changes_the_target_not_the_correction():
+    ref = _spine(); auto = _damaged(ref)
+    plain, _ = simulate_correction(auto, ref, SP, budget_frac=0.3, leave_frac=0.0)
+    masked, rec = simulate_correction(auto, ref, SP, budget_frac=0.3, leave_frac=0.0,
+                                      mask_unreviewed=True)
+    assert np.array_equal(plain, masked)              # the reviewer did the same work
+    t = rec["target"]
+    assert (t == IGNORE).any() and 0 < rec["reviewed_frac"] < 1
+    keep = t != IGNORE
+    assert np.array_equal(t[keep], masked[keep])      # reviewed voxels carry the correction
+
+
+def test_unfixed_levels_are_never_offered_as_truth():
+    """W7's failure, as a test: a level left over budget must not reach training
+    as the model's own (wrong) output."""
+    ref = _spine(); auto = _damaged(ref)
+    _, rec = simulate_correction(auto, ref, SP, budget_frac=0.3, leave_frac=0.0,
+                                 mask_unreviewed=True)
+    assert rec["left_over_budget"]
+    for lab in rec["left_over_budget"]:
+        core = ndimage_core(ref == lab)
+        assert (rec["target"][core] == IGNORE).all()
+
+
+def ndimage_core(mask):
+    from scipy import ndimage
+
+    return ndimage.binary_erosion(mask, iterations=3)
+
+
+def test_no_reviewer_means_nothing_to_learn_from():
+    ref = _spine(); auto = _damaged(ref)
+    auto[:] = 0                                        # nothing accepted either
+    _, rec = simulate_correction(auto, ref, SP, budget_frac=0.0, mask_unreviewed=True)
+    assert (rec["target"] == IGNORE).all()
+
+
+def test_per_region_budget_reaches_the_small_region():
+    """Big lumbar errors + small cervical errors: a case-wide burden ranking
+    spends everything on lumbar; a per-region budget must fix cervical too."""
+    ref = np.zeros((24, 24, 130), dtype=np.int16)
+    for i in range(4):
+        ref[4:20, 4:20, 4 + 16 * i: 4 + 16 * i + 13] = 20 + i     # large lumbar
+    for i in range(4):
+        ref[9:15, 9:15, 72 + 8 * i: 72 + 8 * i + 5] = 3 + i       # small cervical
+    auto = np.zeros_like(ref)                                       # model saw nothing
+    _, by_case = simulate_correction(auto, ref, SP, budget_frac=0.5, leave_frac=0.0)
+    _, by_region = simulate_correction(auto, ref, SP, budget_frac=0.5, leave_frac=0.0,
+                                       per_region=True)
+    assert not any(lab <= 7 for lab in by_case["fixed"])
+    assert any(lab <= 7 for lab in by_region["fixed"])
+    assert by_region["burden_spent_mm"] <= by_case["burden_spent_mm"] * 1.5
+
+
+def test_masked_loss_ignores_unreviewed_voxels():
+    import torch
+
+    from clloop.model import masked_dice_ce
+
+    torch.manual_seed(0)
+    logits = torch.randn(1, 27, 8, 8, 8, requires_grad=True)
+    y = torch.randint(0, 27, (1, 1, 8, 8, 8))
+    y[..., 4:] = IGNORE
+    a = masked_dice_ce(logits, y)
+    a.backward()
+    assert float(logits.grad[..., 4:].abs().sum()) == 0.0   # no gradient from unreviewed
+    assert float(logits.grad[..., :4].abs().sum()) > 0.0
+    nothing = masked_dice_ce(logits, torch.full_like(y, IGNORE))
+    assert float(nothing) == 0.0                            # and no NaN when nothing was reviewed
+
+
+def test_w17_result_is_pinned_and_stays_modest():
+    """The reviewed-regions-only result, pinned: a partial rescue on one seed.
+    The pin includes the uncomfortable parts so a later edit cannot round the
+    story up to 'masking fixes it'."""
+    import json
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    out = json.loads((repo / "manifests" / "w17_reviewed_only.json").read_text())
+    arms = out["arms"]
+    assert out["complete"] and not out["kill_condition_met"]
+    assert arms["A masked"]["promotions"] == 1 and arms["B region+masked"]["promotions"] == 0
+    assert out["best_arm_over_oracle"] < 0.5           # nowhere near the oracle
+    assert all(a["poison_refused"] for a in arms.values())
+    eff_w7 = arms["budget (W7)"]["reviewer_effort_by_region"]["cervical"]["fixed_frac"]
+    eff_b = arms["B region+masked"]["reviewer_effort_by_region"]["cervical"]["fixed_frac"]
+    assert eff_b > 5 * eff_w7                          # the per-region budget did what it says
+    assert arms["B region+masked"]["candidates_tripping_forgetting"] == 3

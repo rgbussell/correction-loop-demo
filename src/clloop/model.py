@@ -18,7 +18,7 @@ import random
 
 import numpy as np
 import torch
-from monai.losses import DiceCELoss
+from monai.losses import DiceCELoss, MaskedDiceLoss
 from monai.networks.nets import UNet
 
 N_CLASSES = 27  # 0 bg, 1-7 C, 8-19 T, 20-25 L1-L6, 26 sacrum
@@ -57,7 +57,7 @@ def _random_fg_patch(
     when the case has no foreground)."""
     img = _pad_to(img, PATCH)
     seg = _pad_to(seg, PATCH)
-    fg = np.argwhere(seg > 0)
+    fg = np.argwhere((seg > 0) & (seg != IGNORE))  # never centre a patch on unreviewed voxels
     if len(fg):
         c = fg[rng.randrange(len(fg))]
     else:
@@ -68,6 +68,27 @@ def _random_fg_patch(
     ]
     sl = tuple(slice(s, s + p) for s, p in zip(starts, PATCH))
     return img[sl], seg[sl]
+
+
+IGNORE = 255  # "nobody reviewed this voxel" — contributes no loss (W17)
+
+
+def masked_dice_ce(logits: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """Dice + cross-entropy over REVIEWED voxels only.
+
+    ``y`` is (B, 1, ...) with ``IGNORE`` marking voxels no reviewer touched.
+    Those voxels are excluded from both terms, so an unreviewed region can
+    neither reward nor punish the model — the opposite of approving it. A
+    batch with nothing reviewed returns a zero that still backpropagates.
+    """
+    keep = (y != IGNORE)
+    if not keep.any():
+        return logits.sum() * 0.0
+    y_safe = torch.where(keep, y, torch.zeros_like(y))
+    ce = torch.nn.functional.cross_entropy(logits, y_safe[:, 0], reduction="none")
+    ce = (ce * keep[:, 0]).sum() / keep.sum()
+    dice = MaskedDiceLoss(to_onehot_y=True, softmax=True)(logits, y_safe, mask=keep.float())
+    return dice + ce
 
 
 def make_training_list(
@@ -135,7 +156,8 @@ def train(
         x = torch.from_numpy(np.stack(xs)).float().to(device)
         y = torch.from_numpy(np.stack(ys)).long().to(device)
         opt.zero_grad()
-        loss = loss_fn(model(x), y)
+        # the original loss, untouched, unless the batch carries unreviewed voxels
+        loss = masked_dice_ce(model(x), y) if bool((y == IGNORE).any()) else loss_fn(model(x), y)
         loss.backward()
         opt.step()
         sched.step()

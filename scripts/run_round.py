@@ -32,7 +32,8 @@ def main() -> int:
     ap.add_argument("--tag", default="", help="ablation arm suffix, e.g. _norehearsal")
     ap.add_argument("--force-admit", action="store_true",
                     help="bypass the batch screen (counterfactual arm; recorded)")
-    ap.add_argument("--corrector", choices=("oracle", "budget", "budget_jitter"),
+    ap.add_argument("--corrector", choices=("oracle", "budget", "budget_jitter", "budget_masked",
+                             "budget_region_masked"),
                     default="oracle", help="the reviewer the loop learns from (W7)")
     ap.add_argument("--control", choices=("none", "with", "only"), default="none",
                     help="the more-training null: 'with' a main round, or 'only' as an arm")

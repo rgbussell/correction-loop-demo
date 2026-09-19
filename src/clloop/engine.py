@@ -49,6 +49,10 @@ CORRECTORS = {
     "oracle": None,
     "budget": {"budget_frac": 0.5, "leave_frac": 0.05, "jitter_p": 0.0},
     "budget_jitter": {"budget_frac": 0.5, "leave_frac": 0.05, "jitter_p": 0.3},
+    # W17: the SAME reviewer, but nothing unreviewed is ever trained on as truth
+    "budget_masked": {"budget_frac": 0.5, "leave_frac": 0.05, "mask_unreviewed": True},
+    "budget_region_masked": {"budget_frac": 0.5, "leave_frac": 0.05, "per_region": True,
+                             "mask_unreviewed": True},
 }
 CACHE_MM = (3.0, 3.0, 3.0)
 
@@ -263,7 +267,12 @@ def run_round(
                     pred.astype(np.int16), served.astype(np.int16), CACHE_MM,
                     rng=np.random.default_rng([seed, k, n_c]), **CORRECTORS[corrector])
                 corr_dir.mkdir(parents=True, exist_ok=True)
-                np.savez_compressed(corr_dir / f"{cid}.npz", labels=corrected.astype(np.uint8))
+                # what training consumes: the corrected mask, or (W17) the target in
+                # which unreviewed voxels carry IGNORE. The screen below always
+                # scores the corrected mask — a reviewer's edits are the delta.
+                target = c_rec.pop("target", None)
+                np.savez_compressed(corr_dir / f"{cid}.npz", labels=(
+                    corrected if target is None else target).astype(np.uint8))
                 corr_log.append({"case_id": cid, **c_rec})
                 d = score_case(pred.astype(np.int16), corrected, CACHE_MM)
                 deltas.append({

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # W7: re-run the loop with a simulated, budgeted reviewer instead of the oracle.
 # Round 0 (initial pool, full labels) is shared with the oracle chain and
-# copied; rounds 1-4 run under each corrector. Seed given as $1 (default 1337).
+# copied; rounds 1-4 run under each corrector. Seed given as $1 (default 1337),
+# arms as $2 (default: the two W7 arms).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${CLLOOP_PY:-python3}"
@@ -10,7 +11,8 @@ case "$SEED" in
   1337) SRC=outputs/rounds ;;
   *)    SRC="outputs/seedband/s${SEED}" ;;
 esac
-for ARM in budget budget_jitter; do
+ARMS="${2:-budget budget_jitter}"
+for ARM in $ARMS; do
   ROOT="outputs/corrector/s${SEED}_${ARM}"
   mkdir -p "$ROOT"
   [ -d "$ROOT/round0" ] || cp -r "$SRC/round0" "$ROOT/round0"

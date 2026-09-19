@@ -1,0 +1,576 @@
+{
+  "seed": 1337,
+  "arms": {
+    "oracle": {
+      "complete": true,
+      "promotions": 3,
+      "end_to_end_reduction": 0.2513,
+      "deployed_final_dice": {
+        "cervical": 0.5389,
+        "thoracic": 0.7348,
+        "lumbar": 0.7383
+      },
+      "candidate_gains": [
+        0.1004,
+        0.0901,
+        0.0853
+      ],
+      "candidates_tripping_forgetting": 0,
+      "poison_refused": true,
+      "final_candidate_dice": {
+        "cervical": 0.5389,
+        "thoracic": 0.7348,
+        "lumbar": 0.7383
+      },
+      "reviewer_effort_by_region": null,
+      "chain": [
+        {
+          "round": 0,
+          "promoted": null,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2730.2,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": []
+        },
+        {
+          "round": 1,
+          "promoted": true,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2456.0,
+          "deployed_apl_m": 2456.0,
+          "deployed_dice": {
+            "cervical": 0.0025,
+            "thoracic": 0.7311,
+            "lumbar": 0.7046
+          },
+          "candidate_dice": {
+            "cervical": 0.0025,
+            "thoracic": 0.7311,
+            "lumbar": 0.7046
+          },
+          "gain_vs_do_nothing": 0.1004,
+          "reasons": []
+        },
+        {
+          "round": 2,
+          "promoted": true,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2234.7,
+          "deployed_apl_m": 2234.7,
+          "deployed_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.7285,
+            "lumbar": 0.7334
+          },
+          "candidate_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.7285,
+            "lumbar": 0.7334
+          },
+          "gain_vs_do_nothing": 0.0901,
+          "reasons": []
+        },
+        {
+          "round": 3,
+          "promoted": false,
+          "refused_at_curation": true,
+          "candidate_apl_m": 2234.7,
+          "deployed_apl_m": 2234.7,
+          "deployed_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.7285,
+            "lumbar": 0.7334
+          },
+          "candidate_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.7285,
+            "lumbar": 0.7334
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": [
+            "batch refused at curation: enumeration-shift signature: 39 relabel-class levels across the batch and 95% of their offsets agree on +1 \u2014 a systematic reference labeling error, refused before any training"
+          ]
+        },
+        {
+          "round": 4,
+          "promoted": true,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2044.0,
+          "deployed_apl_m": 2044.0,
+          "deployed_dice": {
+            "cervical": 0.5389,
+            "thoracic": 0.7348,
+            "lumbar": 0.7383
+          },
+          "candidate_dice": {
+            "cervical": 0.5389,
+            "thoracic": 0.7348,
+            "lumbar": 0.7383
+          },
+          "gain_vs_do_nothing": 0.0853,
+          "reasons": []
+        }
+      ]
+    },
+    "budget (W7)": {
+      "complete": true,
+      "promotions": 0,
+      "end_to_end_reduction": 0.0,
+      "deployed_final_dice": {
+        "cervical": 0.0337,
+        "thoracic": 0.6875,
+        "lumbar": 0.6802
+      },
+      "candidate_gains": [
+        0.055,
+        0.0489,
+        0.0398
+      ],
+      "candidates_tripping_forgetting": 3,
+      "poison_refused": true,
+      "final_candidate_dice": {
+        "cervical": 0.0,
+        "thoracic": 0.6192,
+        "lumbar": 0.7158
+      },
+      "reviewer_effort_by_region": {
+        "cervical": {
+          "fixed": 11,
+          "left_small": 93,
+          "left_over_budget": 34,
+          "fixed_frac": 0.08
+        },
+        "thoracic": {
+          "fixed": 89,
+          "left_small": 197,
+          "left_over_budget": 73,
+          "fixed_frac": 0.248
+        },
+        "lumbar": {
+          "fixed": 133,
+          "left_small": 34,
+          "left_over_budget": 34,
+          "fixed_frac": 0.662
+        }
+      },
+      "chain": [
+        {
+          "round": 0,
+          "promoted": null,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2730.2,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": []
+        },
+        {
+          "round": 1,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2579.9,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.6233,
+            "lumbar": 0.691
+          },
+          "gain_vs_do_nothing": 0.055,
+          "reasons": [
+            "fails do-nothing null: APL gain +5.5%, paired 95% interval [-0.9%, +11.1%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.623 (drop 0.064 > 0.05)"
+          ]
+        },
+        {
+          "round": 2,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2596.7,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.6352,
+            "lumbar": 0.7253
+          },
+          "gain_vs_do_nothing": 0.0489,
+          "reasons": [
+            "fails do-nothing null: APL gain +4.9%, paired 95% interval [-2.8%, +11.2%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.635 (drop 0.052 > 0.05)"
+          ]
+        },
+        {
+          "round": 3,
+          "promoted": false,
+          "refused_at_curation": true,
+          "candidate_apl_m": 2730.2,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": [
+            "batch refused at curation: enumeration-shift signature: 16 relabel-class levels across the batch and 88% of their offsets agree on +1 \u2014 a systematic reference labeling error, refused before any training"
+          ]
+        },
+        {
+          "round": 4,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2621.4,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.6192,
+            "lumbar": 0.7158
+          },
+          "gain_vs_do_nothing": 0.0398,
+          "reasons": [
+            "fails do-nothing null: APL gain +4.0%, paired 95% interval [-4.1%, +11.2%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.619 (drop 0.068 > 0.05)"
+          ]
+        }
+      ]
+    },
+    "A masked": {
+      "complete": true,
+      "promotions": 1,
+      "end_to_end_reduction": 0.0713,
+      "deployed_final_dice": {
+        "cervical": 0.0717,
+        "thoracic": 0.6458,
+        "lumbar": 0.7115
+      },
+      "candidate_gains": [
+        0.0404,
+        0.0713,
+        -0.0035
+      ],
+      "candidates_tripping_forgetting": 1,
+      "poison_refused": true,
+      "final_candidate_dice": {
+        "cervical": 0.1535,
+        "thoracic": 0.6041,
+        "lumbar": 0.7492
+      },
+      "reviewer_effort_by_region": {
+        "cervical": {
+          "fixed": 10,
+          "left_small": 89,
+          "left_over_budget": 36,
+          "fixed_frac": 0.074
+        },
+        "thoracic": {
+          "fixed": 85,
+          "left_small": 202,
+          "left_over_budget": 71,
+          "fixed_frac": 0.237
+        },
+        "lumbar": {
+          "fixed": 131,
+          "left_small": 36,
+          "left_over_budget": 34,
+          "fixed_frac": 0.652
+        }
+      },
+      "chain": [
+        {
+          "round": 0,
+          "promoted": null,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2730.2,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": []
+        },
+        {
+          "round": 1,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2620.0,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0,
+            "thoracic": 0.6104,
+            "lumbar": 0.7188
+          },
+          "gain_vs_do_nothing": 0.0404,
+          "reasons": [
+            "fails do-nothing null: APL gain +4.0%, paired 95% interval [-4.9%, +11.2%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.610 (drop 0.077 > 0.05)"
+          ]
+        },
+        {
+          "round": 2,
+          "promoted": true,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2535.5,
+          "deployed_apl_m": 2535.5,
+          "deployed_dice": {
+            "cervical": 0.0717,
+            "thoracic": 0.6458,
+            "lumbar": 0.7115
+          },
+          "candidate_dice": {
+            "cervical": 0.0717,
+            "thoracic": 0.6458,
+            "lumbar": 0.7115
+          },
+          "gain_vs_do_nothing": 0.0713,
+          "reasons": []
+        },
+        {
+          "round": 3,
+          "promoted": false,
+          "refused_at_curation": true,
+          "candidate_apl_m": 2535.5,
+          "deployed_apl_m": 2535.5,
+          "deployed_dice": {
+            "cervical": 0.0717,
+            "thoracic": 0.6458,
+            "lumbar": 0.7115
+          },
+          "candidate_dice": {
+            "cervical": 0.0717,
+            "thoracic": 0.6458,
+            "lumbar": 0.7115
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": [
+            "batch refused at curation: enumeration-shift signature: 26 relabel-class levels across the batch and 96% of their offsets agree on +1 \u2014 a systematic reference labeling error, refused before any training"
+          ]
+        },
+        {
+          "round": 4,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2544.4,
+          "deployed_apl_m": 2535.5,
+          "deployed_dice": {
+            "cervical": 0.0717,
+            "thoracic": 0.6458,
+            "lumbar": 0.7115
+          },
+          "candidate_dice": {
+            "cervical": 0.1535,
+            "thoracic": 0.6041,
+            "lumbar": 0.7492
+          },
+          "gain_vs_do_nothing": -0.0035,
+          "reasons": [
+            "fails do-nothing null: APL gain -0.3%, paired 95% interval [-8.9%, +7.0%] does not exclude zero; no unserved region opened"
+          ]
+        }
+      ]
+    },
+    "B region+masked": {
+      "complete": true,
+      "promotions": 0,
+      "end_to_end_reduction": 0.0,
+      "deployed_final_dice": {
+        "cervical": 0.0337,
+        "thoracic": 0.6875,
+        "lumbar": 0.6802
+      },
+      "candidate_gains": [
+        0.054,
+        0.0724,
+        0.0326
+      ],
+      "candidates_tripping_forgetting": 3,
+      "poison_refused": true,
+      "final_candidate_dice": {
+        "cervical": 0.3046,
+        "thoracic": 0.6149,
+        "lumbar": 0.6818
+      },
+      "reviewer_effort_by_region": {
+        "cervical": {
+          "fixed": 87,
+          "left_small": 21,
+          "left_over_budget": 30,
+          "fixed_frac": 0.63
+        },
+        "thoracic": {
+          "fixed": 115,
+          "left_small": 49,
+          "left_over_budget": 195,
+          "fixed_frac": 0.32
+        },
+        "lumbar": {
+          "fixed": 91,
+          "left_small": 13,
+          "left_over_budget": 97,
+          "fixed_frac": 0.453
+        }
+      },
+      "chain": [
+        {
+          "round": 0,
+          "promoted": null,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2730.2,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": []
+        },
+        {
+          "round": 1,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2582.7,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0191,
+            "thoracic": 0.6013,
+            "lumbar": 0.7372
+          },
+          "gain_vs_do_nothing": 0.054,
+          "reasons": [
+            "fails do-nothing null: APL gain +5.4%, paired 95% interval [-3.0%, +12.3%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.601 (drop 0.086 > 0.05)"
+          ]
+        },
+        {
+          "round": 2,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2532.6,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.1941,
+            "thoracic": 0.6081,
+            "lumbar": 0.6871
+          },
+          "gain_vs_do_nothing": 0.0724,
+          "reasons": [
+            "fails do-nothing null: APL gain +7.2%, paired 95% interval [-0.2%, +13.6%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.608 (drop 0.079 > 0.05)"
+          ]
+        },
+        {
+          "round": 3,
+          "promoted": false,
+          "refused_at_curation": true,
+          "candidate_apl_m": 2730.2,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "gain_vs_do_nothing": null,
+          "reasons": [
+            "batch refused at curation: enumeration-shift signature: 14 relabel-class levels across the batch and 79% of their offsets agree on +1 \u2014 a systematic reference labeling error, refused before any training"
+          ]
+        },
+        {
+          "round": 4,
+          "promoted": false,
+          "refused_at_curation": false,
+          "candidate_apl_m": 2641.3,
+          "deployed_apl_m": 2730.2,
+          "deployed_dice": {
+            "cervical": 0.0337,
+            "thoracic": 0.6875,
+            "lumbar": 0.6802
+          },
+          "candidate_dice": {
+            "cervical": 0.3046,
+            "thoracic": 0.6149,
+            "lumbar": 0.6818
+          },
+          "gain_vs_do_nothing": 0.0326,
+          "reasons": [
+            "fails do-nothing null: APL gain +3.3%, paired 95% interval [-4.7%, +10.1%] does not exclude zero; no unserved region opened",
+            "forgetting gate: thoracic: 0.688 -> 0.615 (drop 0.073 > 0.05)"
+          ]
+        }
+      ]
+    }
+  },
+  "complete": true,
+  "kill_condition_met": false,
+  "best_arm_over_oracle": 0.284
+}
