@@ -1,0 +1,189 @@
+[
+  {
+    "case_id": "GL047",
+    "apl_mm": 85249.4,
+    "surface_dice": 0.7016,
+    "kind": "boundary",
+    "level_kinds": {
+      "boundary": 8,
+      "missing": 3,
+      "spurious": 1
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "GL124",
+    "apl_mm": 92770.3,
+    "surface_dice": 0.8012,
+    "kind": "boundary",
+    "level_kinds": {
+      "boundary": 9,
+      "missing": 1
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse096",
+    "apl_mm": 109833.0,
+    "surface_dice": 0.8692,
+    "kind": "relabel",
+    "level_kinds": {
+      "boundary": 8,
+      "relabel": 10,
+      "spurious": 1
+    },
+    "level_offsets": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "case_id": "verse135",
+    "apl_mm": 101527.0,
+    "surface_dice": 0.8037,
+    "kind": "mixed",
+    "level_kinds": {
+      "boundary": 14,
+      "relabel": 3,
+      "missing": 1,
+      "spurious": 4
+    },
+    "level_offsets": [
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "case_id": "verse254",
+    "apl_mm": 92496.0,
+    "surface_dice": 0.5337,
+    "kind": "boundary",
+    "level_kinds": {
+      "missing": 3,
+      "boundary": 15,
+      "spurious": 2
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse525",
+    "apl_mm": 129799.0,
+    "surface_dice": 0.5324,
+    "kind": "mixed",
+    "level_kinds": {
+      "missing": 3,
+      "boundary": 2,
+      "spurious": 9
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse542",
+    "apl_mm": 169736.2,
+    "surface_dice": 0.4951,
+    "kind": "boundary",
+    "level_kinds": {
+      "boundary": 17,
+      "spurious": 2
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse557",
+    "apl_mm": 144178.9,
+    "surface_dice": 0.7362,
+    "kind": "mixed",
+    "level_kinds": {
+      "relabel": 4,
+      "boundary": 8,
+      "missing": 5,
+      "spurious": 5
+    },
+    "level_offsets": [
+      1,
+      1,
+      1,
+      2
+    ]
+  },
+  {
+    "case_id": "verse581",
+    "apl_mm": 199277.6,
+    "surface_dice": 0.7119,
+    "kind": "mixed",
+    "level_kinds": {
+      "missing": 8,
+      "boundary": 11,
+      "relabel": 4
+    },
+    "level_offsets": [
+      1,
+      -1,
+      1,
+      1
+    ]
+  },
+  {
+    "case_id": "verse594",
+    "apl_mm": 67724.0,
+    "surface_dice": 0.8103,
+    "kind": "boundary",
+    "level_kinds": {
+      "boundary": 9,
+      "spurious": 3
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse641",
+    "apl_mm": 67121.8,
+    "surface_dice": 0.461,
+    "kind": "mixed",
+    "level_kinds": {
+      "missing": 7,
+      "boundary": 2,
+      "spurious": 3
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse807",
+    "apl_mm": 140968.7,
+    "surface_dice": 0.69,
+    "kind": "mixed",
+    "level_kinds": {
+      "boundary": 6,
+      "missing": 2,
+      "spurious": 9
+    },
+    "level_offsets": []
+  },
+  {
+    "case_id": "verse823",
+    "apl_mm": 255073.4,
+    "surface_dice": 0.7086,
+    "kind": "mixed",
+    "level_kinds": {
+      "missing": 6,
+      "boundary": 12,
+      "relabel": 6
+    },
+    "level_offsets": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  }
+]

@@ -54,3 +54,39 @@ def test_region_dice_absent_region_is_none_not_a_score():
     rd2 = region_dice(pred2, ref)
     assert rd2["lumbar"] == 0.0
     assert rd2["cervical"] is None  # still keyed to the REFERENCE's anatomy
+
+
+# ------------------------------------------- W8: burden-weighted rehearsal
+def test_uniform_rehearsal_is_unchanged_by_the_new_argument():
+    from clloop.model import make_training_list
+
+    seen = [f"s{i}" for i in range(40)]
+    a = make_training_list(["n1", "n2", "n3"], seen, rehearsal_frac=0.25, seed=9)
+    b = make_training_list(["n1", "n2", "n3"], seen, rehearsal_frac=0.25, seed=9, weights=None)
+    assert a[0] == b[0] and a[1]["rehearsal_selection"] == "uniform"
+
+
+def test_weighted_rehearsal_same_n_no_repeats_and_follows_the_weights():
+    from clloop.model import make_training_list
+
+    seen = [f"s{i}" for i in range(40)]
+    new = [f"n{i}" for i in range(12)]
+    w = {c: (1000.0 if c in ("s3", "s7", "s11", "s19") else 1.0) for c in seen}
+    hits = 0
+    for seed in range(50):
+        ids_u, mix_u = make_training_list(new, seen, rehearsal_frac=0.25, seed=seed)
+        ids_w, mix_w = make_training_list(new, seen, rehearsal_frac=0.25, seed=seed, weights=w)
+        assert mix_w["n_rehearsal"] == mix_u["n_rehearsal"] == 4        # same N
+        assert len(set(mix_w["rehearsal_ids"])) == 4                   # no repeats
+        assert not set(mix_w["rehearsal_ids"]) & set(new)
+        hits += len(set(mix_w["rehearsal_ids"]) & {"s3", "s7", "s11", "s19"})
+    assert hits > 0.9 * 200 and mix_w["rehearsal_selection"] == "burden-weighted"
+
+
+def test_weighted_rehearsal_with_no_signal_falls_back_to_uniform_draws():
+    from clloop.model import make_training_list
+
+    seen = [f"s{i}" for i in range(20)]
+    ids, mix = make_training_list(["n1", "n2", "n3"], seen, rehearsal_frac=0.25, seed=1,
+                                  weights={c: 0.0 for c in seen})
+    assert mix["n_rehearsal"] == 1 and mix["rehearsal_ids"][0] in seen

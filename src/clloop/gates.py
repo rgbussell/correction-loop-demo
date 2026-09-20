@@ -379,7 +379,9 @@ def decide_promotion_banded(
         evidence["promoted_by"] = f"unserved-region ({', '.join(opened)})"
     else:
         why = (f"fails do-nothing null: APL gain {gain:+.1%}, paired 95% interval "
-               f"[{lo:+.1%}, {hi:+.1%}] does not exclude zero")
+               f"[{lo:+.1%}, {hi:+.1%}] "
+               + ("lies wholly below zero — significantly WORSE than do-nothing"
+                  if hi < 0 else "does not exclude zero"))
         if opened and gain < 0:
             why += f"; opened {', '.join(opened)} but at a net burden COST"
         elif not opened:

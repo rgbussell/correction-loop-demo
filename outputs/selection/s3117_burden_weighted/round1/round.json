@@ -1,0 +1,300 @@
+{
+  "round": 1,
+  "seed": 3117,
+  "iters": 2000,
+  "arrival": {
+    "batch_index": 0,
+    "n": 14,
+    "served_poisoned": false
+  },
+  "incumbent": "outputs/selection/s3117_burden_weighted/round0/model.pt",
+  "deltas": [
+    {
+      "case_id": "GL217",
+      "apl_mm": 93775.5,
+      "surface_dice": 0.5427,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 1,
+        "boundary": 9,
+        "spurious": 9
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse034",
+      "apl_mm": 52413.0,
+      "surface_dice": 0.409,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 5,
+        "boundary": 3,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse082",
+      "apl_mm": 139969.0,
+      "surface_dice": 0.4317,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 17,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse111",
+      "apl_mm": 43445.0,
+      "surface_dice": 0.7189,
+      "kind": "mixed",
+      "level_kinds": {
+        "relabel": 1,
+        "boundary": 6,
+        "spurious": 2
+      },
+      "level_offsets": [
+        -1
+      ]
+    },
+    {
+      "case_id": "verse143",
+      "apl_mm": 40015.0,
+      "surface_dice": 0.6265,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 5,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse518",
+      "apl_mm": 137627.5,
+      "surface_dice": 0.7139,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 17,
+        "spurious": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse519",
+      "apl_mm": 178651.3,
+      "surface_dice": 0.4655,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 13,
+        "missing": 4,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse532",
+      "apl_mm": 152392.1,
+      "surface_dice": 0.4894,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 7,
+        "relabel": 2,
+        "spurious": 9
+      },
+      "level_offsets": [
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse534",
+      "apl_mm": 70004.7,
+      "surface_dice": 0.566,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 8,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse536",
+      "apl_mm": 78250.8,
+      "surface_dice": 0.7556,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 11,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse588",
+      "apl_mm": 212768.1,
+      "surface_dice": 0.3296,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 17,
+        "boundary": 5,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse605",
+      "apl_mm": 149144.9,
+      "surface_dice": 0.2886,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 11,
+        "boundary": 7
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse760",
+      "apl_mm": 53184.9,
+      "surface_dice": 0.5996,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 8,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse811",
+      "apl_mm": 41529.0,
+      "surface_dice": 0.5903,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 9,
+        "spurious": 5
+      },
+      "level_offsets": []
+    }
+  ],
+  "curation": {
+    "policy": "delta-screen v3 (enumeration signature, sequestered arbiter) + sequestration",
+    "admitted": [
+      "GL217",
+      "verse034",
+      "verse082",
+      "verse111",
+      "verse143",
+      "verse518",
+      "verse519",
+      "verse532",
+      "verse534",
+      "verse536",
+      "verse588",
+      "verse605",
+      "verse760",
+      "verse811"
+    ],
+    "refused": [],
+    "refusal_reason": null,
+    "evidence": {
+      "n_cases": 14,
+      "n_relabel_cases": 0,
+      "n_relabel_levels": 3,
+      "offset_histogram": {
+        "-1": 1,
+        "1": 2
+      },
+      "relabel_case_frac": 0.0,
+      "modal_offset": 1,
+      "offset_consensus": 0.667
+    }
+  },
+  "training": {
+    "ids": [
+      "GL217",
+      "verse034",
+      "verse082",
+      "verse111",
+      "verse143",
+      "verse518",
+      "verse519",
+      "verse532",
+      "verse534",
+      "verse536",
+      "verse588",
+      "verse605",
+      "verse760",
+      "verse811",
+      "verse031",
+      "verse092",
+      "verse619",
+      "verse704",
+      "verse833"
+    ],
+    "mix": {
+      "n_new": 14,
+      "n_rehearsal": 5,
+      "rehearsal_frac_requested": 0.25,
+      "rehearsal_frac_actual": 0.2631578947368421,
+      "rehearsal_ids": [
+        "verse031",
+        "verse092",
+        "verse619",
+        "verse704",
+        "verse833"
+      ],
+      "rehearsal_selection": "burden-weighted"
+    }
+  },
+  "loss_final": 0.6662,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.2109,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.7263,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.7284,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 69504.0,
+    "apl_mm_total": 2217274.2,
+    "surface_dice_median": 0.7107,
+    "kinds": {
+      "mixed": 15,
+      "boundary": 9
+    }
+  },
+  "promotion": {
+    "promoted": true,
+    "reasons": [],
+    "evidence": {
+      "apl_gain_frac_vs_do_nothing": 0.2188,
+      "apl_gain_ci95": [
+        0.142,
+        0.298
+      ],
+      "unserved_regions": [
+        {
+          "region": "cervical",
+          "median": [
+            0.0,
+            0.2109
+          ],
+          "n_cases": 9,
+          "mean_change_ci95": [
+            0.0093,
+            0.2147
+          ]
+        }
+      ],
+      "promoted_by": "burden"
+    }
+  },
+  "mlflow_run_id": "594f7f7279ea4397a72c05604c0d30ad",
+  "dvc": {
+    "path": "outputs/selection/s3117_burden_weighted/round1/model.pt",
+    "added": true,
+    "pushed": true
+  },
+  "seconds": 1117.4
+}

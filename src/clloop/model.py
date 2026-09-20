@@ -97,6 +97,7 @@ def make_training_list(
     *,
     rehearsal_frac: float,
     seed: int,
+    weights: dict[str, float] | None = None,
 ) -> tuple[list[str], dict]:
     """The round's training cases: the new cohort + a rehearsal draw of the past.
 
@@ -110,7 +111,20 @@ def make_training_list(
         n_reh = 0
     else:
         n_reh = min(len(pool), round(rehearsal_frac / (1 - rehearsal_frac) * len(new_ids)))
-    rehearsal = sorted(rng.sample(pool, n_reh)) if n_reh else []
+    if weights is None or not n_reh:
+        rehearsal = sorted(rng.sample(pool, n_reh)) if n_reh else []
+    else:
+        # Selection arm (W8): draw WITHOUT replacement, probability proportional
+        # to the supplied weight (the incumbent's burden on that case). Same N
+        # as the uniform draw; all-zero weights fall back to uniform.
+        left, rehearsal = list(pool), []
+        for _ in range(n_reh):
+            w = [max(0.0, float(weights.get(c, 0.0))) for c in left]
+            pick = (rng.choices(left, weights=w, k=1)[0] if sum(w) > 0
+                    else left[rng.randrange(len(left))])
+            rehearsal.append(pick)
+            left.remove(pick)
+        rehearsal = sorted(rehearsal)
     ids = sorted(new_ids) + rehearsal
     return ids, {
         "n_new": len(new_ids),
@@ -118,6 +132,7 @@ def make_training_list(
         "rehearsal_frac_requested": rehearsal_frac,
         "rehearsal_frac_actual": len(rehearsal) / len(ids) if ids else 0.0,
         "rehearsal_ids": rehearsal,
+        "rehearsal_selection": "uniform" if weights is None else "burden-weighted",
     }
 
 

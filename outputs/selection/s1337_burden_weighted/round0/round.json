@@ -1,0 +1,71 @@
+{
+  "round": 0,
+  "seed": 1337,
+  "iters": 2000,
+  "training": {
+    "ids": [
+      "GL090",
+      "GL240",
+      "GL348",
+      "verse004",
+      "verse005",
+      "verse008",
+      "verse015",
+      "verse031",
+      "verse055",
+      "verse085",
+      "verse092",
+      "verse113",
+      "verse122",
+      "verse127",
+      "verse154",
+      "verse504",
+      "verse507",
+      "verse514",
+      "verse527",
+      "verse535",
+      "verse541",
+      "verse544",
+      "verse546",
+      "verse565",
+      "verse619",
+      "verse629",
+      "verse704",
+      "verse808",
+      "verse818",
+      "verse833"
+    ],
+    "mix": {
+      "n_new": 0,
+      "n_rehearsal": 0,
+      "note": "round 0 = initial pool baseline"
+    }
+  },
+  "loss_final": 0.7627,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.0337,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.6875,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.6802,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 82454.1,
+    "apl_mm_total": 2730179.5,
+    "surface_dice_median": 0.6468,
+    "kinds": {
+      "mixed": 12,
+      "boundary": 12
+    }
+  },
+  "mlflow_run_id": "e0db34fd773340ca92ff649cb0805089",
+  "dvc": {
+    "path": "outputs/rounds/round0/model.pt",
+    "added": true,
+    "pushed": false,
+    "push_error": "ERROR: unexpected error - Failed to authenticate GDrive: Access token refresh failed: invalid_grant: Bad Request\n\nHaving any troubles? Hit us up at https://dvc.org/support, we are always happy to help!"
+  },
+  "seconds": 889.6
+}

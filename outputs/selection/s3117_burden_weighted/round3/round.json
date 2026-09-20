@@ -1,0 +1,325 @@
+{
+  "round": 3,
+  "seed": 3117,
+  "iters": 2000,
+  "arrival": {
+    "batch_index": 2,
+    "n": 13,
+    "served_poisoned": true
+  },
+  "incumbent": "outputs/selection/s3117_burden_weighted/round1/model.pt",
+  "deltas": [
+    {
+      "case_id": "GL047",
+      "apl_mm": 96530.6,
+      "surface_dice": 0.6607,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 7,
+        "missing": 4,
+        "spurious": 11
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL124",
+      "apl_mm": 120412.2,
+      "surface_dice": 0.7228,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 7,
+        "boundary": 3,
+        "spurious": 6
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse096",
+      "apl_mm": 119893.0,
+      "surface_dice": 0.8703,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 10,
+        "relabel": 8
+      },
+      "level_offsets": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse135",
+      "apl_mm": 100616.0,
+      "surface_dice": 0.822,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 14,
+        "relabel": 4,
+        "spurious": 1
+      },
+      "level_offsets": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse254",
+      "apl_mm": 90983.0,
+      "surface_dice": 0.6252,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 15,
+        "missing": 3,
+        "spurious": 4
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse525",
+      "apl_mm": 127405.7,
+      "surface_dice": 0.4924,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 2,
+        "boundary": 3,
+        "spurious": 11
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse542",
+      "apl_mm": 183406.5,
+      "surface_dice": 0.4352,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 17,
+        "spurious": 3
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse557",
+      "apl_mm": 144762.4,
+      "surface_dice": 0.6735,
+      "kind": "mixed",
+      "level_kinds": {
+        "relabel": 6,
+        "boundary": 7,
+        "missing": 4,
+        "spurious": 1
+      },
+      "level_offsets": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        2
+      ]
+    },
+    {
+      "case_id": "verse581",
+      "apl_mm": 196072.2,
+      "surface_dice": 0.6882,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 9,
+        "boundary": 10,
+        "relabel": 4
+      },
+      "level_offsets": [
+        -1,
+        -1,
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse594",
+      "apl_mm": 95533.7,
+      "surface_dice": 0.8273,
+      "kind": "relabel",
+      "level_kinds": {
+        "relabel": 6,
+        "boundary": 3,
+        "spurious": 3
+      },
+      "level_offsets": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse641",
+      "apl_mm": 67718.9,
+      "surface_dice": 0.0966,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 8,
+        "boundary": 1,
+        "spurious": 10
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse807",
+      "apl_mm": 145321.2,
+      "surface_dice": 0.6969,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 4,
+        "boundary": 4,
+        "spurious": 6
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse823",
+      "apl_mm": 267817.0,
+      "surface_dice": 0.7032,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 6,
+        "boundary": 11,
+        "relabel": 7
+      },
+      "level_offsets": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "curation": {
+    "policy": "delta-screen v3 (enumeration signature, sequestered arbiter) + sequestration",
+    "admitted": [],
+    "refused": [
+      "GL047",
+      "GL124",
+      "verse096",
+      "verse135",
+      "verse254",
+      "verse525",
+      "verse542",
+      "verse557",
+      "verse581",
+      "verse594",
+      "verse641",
+      "verse807",
+      "verse823"
+    ],
+    "refusal_reason": "enumeration-shift signature: 35 relabel-class levels across the batch and 89% of their offsets agree on +1 \u2014 a systematic reference labeling error, refused before any training",
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 1,
+      "n_relabel_levels": 35,
+      "offset_histogram": {
+        "1": 31,
+        "2": 2,
+        "-1": 2
+      },
+      "relabel_case_frac": 0.077,
+      "modal_offset": 1,
+      "offset_consensus": 0.886,
+      "arbiter": {
+        "batch_rate": 0.1276,
+        "incumbent_rate_on_sequestered": 0.0328,
+        "batch_counts": [
+          31,
+          243
+        ],
+        "sequestered_counts": [
+          15,
+          458
+        ],
+        "p_batch_exceeds_incumbent": 2.93e-06,
+        "alpha": 0.01,
+        "shift_attributed_to": "references"
+      }
+    }
+  },
+  "training": {
+    "ids": [],
+    "mix": {
+      "n_new": 0,
+      "n_rehearsal": 0,
+      "note": "batch refused \u2014 incumbent stands"
+    }
+  },
+  "loss_final": null,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.2109,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.7263,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.7284,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 69504.0,
+    "apl_mm_total": 2217274.2,
+    "surface_dice_median": 0.7107,
+    "kinds": {
+      "mixed": 15,
+      "boundary": 9
+    }
+  },
+  "promotion": {
+    "promoted": false,
+    "reasons": [
+      "batch refused at curation: enumeration-shift signature: 35 relabel-class levels across the batch and 89% of their offsets agree on +1 \u2014 a systematic reference labeling error, refused before any training"
+    ],
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 1,
+      "n_relabel_levels": 35,
+      "offset_histogram": {
+        "1": 31,
+        "2": 2,
+        "-1": 2
+      },
+      "relabel_case_frac": 0.077,
+      "modal_offset": 1,
+      "offset_consensus": 0.886,
+      "arbiter": {
+        "batch_rate": 0.1276,
+        "incumbent_rate_on_sequestered": 0.0328,
+        "batch_counts": [
+          31,
+          243
+        ],
+        "sequestered_counts": [
+          15,
+          458
+        ],
+        "p_batch_exceeds_incumbent": 2.93e-06,
+        "alpha": 0.01,
+        "shift_attributed_to": "references"
+      }
+    }
+  },
+  "mlflow_run_id": "5d47f365131d4f9bbf7c7c6152df65d6",
+  "dvc": {
+    "path": "outputs/selection/s3117_burden_weighted/round3/model.pt",
+    "added": true,
+    "pushed": true
+  },
+  "seconds": 204.6
+}

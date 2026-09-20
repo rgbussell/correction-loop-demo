@@ -1,0 +1,150 @@
+{
+  "complete": true,
+  "missing": [],
+  "rows": [
+    {
+      "seed": 1337,
+      "uniform": {
+        "deployed_round": 4,
+        "promoted_rounds": [
+          1,
+          2,
+          4
+        ],
+        "apl_total_m": 2044.0,
+        "dice": {
+          "cervical": 0.5389,
+          "thoracic": 0.7348,
+          "lumbar": 0.7383
+        }
+      },
+      "weighted": {
+        "deployed_round": 1,
+        "promoted_rounds": [
+          1
+        ],
+        "apl_total_m": 2186.0,
+        "dice": {
+          "cervical": 0.1266,
+          "thoracic": 0.7262,
+          "lumbar": 0.7577
+        }
+      },
+      "deployed_endpoint": {
+        "weighted_gain_over_uniform": -0.0695,
+        "ci95": [
+          -0.2146,
+          0.0448
+        ],
+        "excludes_zero": false
+      },
+      "round1_same_incumbent": {
+        "weighted_gain_over_uniform": 0.1099,
+        "ci95": [
+          0.0682,
+          0.154
+        ],
+        "excludes_zero": true
+      },
+      "poison_refused": true
+    },
+    {
+      "seed": 2027,
+      "uniform": {
+        "deployed_round": 4,
+        "promoted_rounds": [
+          1,
+          4
+        ],
+        "apl_total_m": 2125.1,
+        "dice": {
+          "cervical": 0.4906,
+          "thoracic": 0.7531,
+          "lumbar": 0.7111
+        }
+      },
+      "weighted": {
+        "deployed_round": 1,
+        "promoted_rounds": [
+          1
+        ],
+        "apl_total_m": 2252.0,
+        "dice": {
+          "cervical": 0.1844,
+          "thoracic": 0.7156,
+          "lumbar": 0.7226
+        }
+      },
+      "deployed_endpoint": {
+        "weighted_gain_over_uniform": -0.0597,
+        "ci95": [
+          -0.1948,
+          0.0563
+        ],
+        "excludes_zero": false
+      },
+      "round1_same_incumbent": {
+        "weighted_gain_over_uniform": 0.022,
+        "ci95": [
+          -0.0451,
+          0.0928
+        ],
+        "excludes_zero": false
+      },
+      "poison_refused": true
+    },
+    {
+      "seed": 3117,
+      "uniform": {
+        "deployed_round": 4,
+        "promoted_rounds": [
+          1,
+          4
+        ],
+        "apl_total_m": 2290.3,
+        "dice": {
+          "cervical": 0.5795,
+          "thoracic": 0.7473,
+          "lumbar": 0.7246
+        }
+      },
+      "weighted": {
+        "deployed_round": 1,
+        "promoted_rounds": [
+          1
+        ],
+        "apl_total_m": 2217.3,
+        "dice": {
+          "cervical": 0.2109,
+          "thoracic": 0.7263,
+          "lumbar": 0.7284
+        }
+      },
+      "deployed_endpoint": {
+        "weighted_gain_over_uniform": 0.0319,
+        "ci95": [
+          -0.0451,
+          0.1042
+        ],
+        "excludes_zero": false
+      },
+      "round1_same_incumbent": {
+        "weighted_gain_over_uniform": 0.0507,
+        "ci95": [
+          -0.0129,
+          0.1194
+        ],
+        "excludes_zero": false
+      },
+      "poison_refused": true
+    }
+  ],
+  "weighted_gain_over_uniform_per_seed": [
+    -0.0695,
+    -0.0597,
+    0.0319
+  ],
+  "n_seeds_weighted_lower": 1,
+  "n_seeds_weighted_lower_beyond_noise": 0,
+  "verdict": "NULL"
+}

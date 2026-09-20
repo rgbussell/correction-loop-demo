@@ -180,6 +180,7 @@ def run_round(
     out_root: Path | None = None,
     control: str = "none",
     corrector: str = "oracle",
+    rehearsal: str = "uniform",
 ) -> dict:
     """Execute round k and write outputs/rounds/round{k}{tag}/round.json.
 
@@ -200,6 +201,8 @@ def run_round(
     no arriving batch — so it isolates the value of the new corrections from
     the value of extra optimisation steps.
     """
+    if rehearsal not in ("uniform", "burden_weighted"):
+        raise ValueError(f"rehearsal must be uniform|burden_weighted, got {rehearsal!r}")
     if corrector not in CORRECTORS:
         raise ValueError(f"corrector must be one of {sorted(CORRECTORS)}, got {corrector!r}")
     if control not in ("none", "with", "only"):
@@ -362,7 +365,21 @@ def run_round(
             return record
 
         # 3. retrain with rehearsal (candidate arm)
-        train_ids, mix = make_training_list(screen.admitted, seen,
+        weights = None
+        if rehearsal == "burden_weighted" and rehearsal_frac > 0:
+            # W8: the incumbent's burden on every already-seen case (native grid,
+            # true references) — where the deployed model still costs a reviewer
+            # the most is where rehearsal is aimed.
+            weights = {}
+            for cid in sorted(set(seen)):
+                img_s, _ = load_case(cache_dir, cid)
+                ref_s = np.asanyarray(nib.load(str(data_root / by_id[cid]["seg"])).dataobj)
+                d_s = score_case(_to_native(predict(inc, img_s, device=device), ref_s.shape),
+                                 fold_labels(ref_s.astype(np.int16)),
+                                 tuple(by_id[cid]["spacing_mm"]))
+                weights[cid] = d_s.apl_mm
+            (out_dir / "rehearsal_weights.json").write_text(json.dumps(weights, indent=2) + "\n")
+        train_ids, mix = make_training_list(screen.admitted, seen, weights=weights,
                                             rehearsal_frac=rehearsal_frac, seed=seed + k)
         assert_sequestration(train_ids, test_ids)
 

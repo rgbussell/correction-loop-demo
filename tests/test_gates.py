@@ -385,3 +385,22 @@ def test_v3_admits_a_real_poison_when_the_reviewer_thins_the_signal():
 def test_v3_should_refuse_the_thin_poison():
     deltas, arbiter = _thin_poison()
     assert screen_batch(deltas, arbiter=arbiter).batch_refused
+
+
+def test_banded_reason_says_worse_when_it_is_worse():
+    """A significantly negative interval DOES exclude zero; the refusal reason
+    must say 'worse', not 'does not exclude zero' (wording bug found in W8)."""
+    base = [100000 + 3000 * i for i in range(24)]
+    d = _judge(_cases(base, lum=[0.7] * 24), _cases([x * 1.12 for x in base], lum=[0.7] * 24))
+    assert not d.promoted and "WORSE" in d.reasons[0] and "does not exclude" not in d.reasons[0]
+    noisy = _judge(_cases(base, lum=[0.7] * 24), _cases(base, lum=[0.7] * 24))
+    assert "does not exclude zero" in noisy.reasons[0]
+
+
+def test_w8_selection_verdict_is_pinned_as_a_null():
+    out = json.loads((_REPO / "manifests" / "w8_selection.json").read_text())
+    assert out["complete"] and out["verdict"] == "NULL"
+    assert out["n_seeds_weighted_lower_beyond_noise"] == 0
+    # the robust secondary pattern: the weighted arm promotes round 1 and then stalls
+    assert all(r["weighted"]["promoted_rounds"] == [1] for r in out["rows"])
+    assert all(r["poison_refused"] for r in out["rows"])

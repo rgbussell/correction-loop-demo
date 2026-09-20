@@ -1,0 +1,301 @@
+{
+  "round": 4,
+  "seed": 2027,
+  "iters": 2000,
+  "arrival": {
+    "batch_index": 3,
+    "n": 13,
+    "served_poisoned": false
+  },
+  "incumbent": "outputs/selection/s2027_burden_weighted/round1/model.pt",
+  "deltas": [
+    {
+      "case_id": "GL003",
+      "apl_mm": 105168.0,
+      "surface_dice": 0.6683,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 10,
+        "missing": 2
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL016",
+      "apl_mm": 70406.8,
+      "surface_dice": 0.72,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 10,
+        "missing": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "GL453",
+      "apl_mm": 63660.1,
+      "surface_dice": 0.7739,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 10
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse097",
+      "apl_mm": 133518.0,
+      "surface_dice": 0.6711,
+      "kind": "boundary",
+      "level_kinds": {
+        "missing": 3,
+        "boundary": 17
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse108",
+      "apl_mm": 165358.0,
+      "surface_dice": 0.1806,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 11,
+        "boundary": 13
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse509",
+      "apl_mm": 153787.9,
+      "surface_dice": 0.8097,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 13,
+        "relabel": 6,
+        "spurious": 2
+      },
+      "level_offsets": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "case_id": "verse537",
+      "apl_mm": 17452.4,
+      "surface_dice": 0.7573,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 8,
+        "spurious": 10
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse539",
+      "apl_mm": 105653.5,
+      "surface_dice": 0.446,
+      "kind": "mixed",
+      "level_kinds": {
+        "boundary": 13,
+        "spurious": 9
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse620",
+      "apl_mm": 272980.8,
+      "surface_dice": 0.7206,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 15,
+        "missing": 4,
+        "spurious": 1
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse631",
+      "apl_mm": 155431.7,
+      "surface_dice": 0.6177,
+      "kind": "boundary",
+      "level_kinds": {
+        "missing": 3,
+        "boundary": 21
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse646",
+      "apl_mm": 67980.5,
+      "surface_dice": 0.7563,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 18,
+        "spurious": 6
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse650",
+      "apl_mm": 79592.5,
+      "surface_dice": 0.3745,
+      "kind": "mixed",
+      "level_kinds": {
+        "missing": 4,
+        "boundary": 6,
+        "spurious": 6
+      },
+      "level_offsets": []
+    },
+    {
+      "case_id": "verse820",
+      "apl_mm": 7756.0,
+      "surface_dice": 0.9154,
+      "kind": "boundary",
+      "level_kinds": {
+        "boundary": 8,
+        "spurious": 3
+      },
+      "level_offsets": []
+    }
+  ],
+  "curation": {
+    "policy": "delta-screen v3 (enumeration signature, sequestered arbiter) + sequestration",
+    "admitted": [
+      "GL003",
+      "GL016",
+      "GL453",
+      "verse097",
+      "verse108",
+      "verse509",
+      "verse537",
+      "verse539",
+      "verse620",
+      "verse631",
+      "verse646",
+      "verse650",
+      "verse820"
+    ],
+    "refused": [],
+    "refusal_reason": null,
+    "evidence": {
+      "n_cases": 13,
+      "n_relabel_cases": 0,
+      "n_relabel_levels": 6,
+      "offset_histogram": {
+        "1": 6
+      },
+      "relabel_case_frac": 0.0,
+      "modal_offset": 1,
+      "offset_consensus": 1.0
+    }
+  },
+  "training": {
+    "ids": [
+      "GL003",
+      "GL016",
+      "GL453",
+      "verse097",
+      "verse108",
+      "verse509",
+      "verse537",
+      "verse539",
+      "verse620",
+      "verse631",
+      "verse646",
+      "verse650",
+      "verse820",
+      "GL247",
+      "verse145",
+      "verse514",
+      "verse577"
+    ],
+    "mix": {
+      "n_new": 13,
+      "n_rehearsal": 4,
+      "rehearsal_frac_requested": 0.25,
+      "rehearsal_frac_actual": 0.23529411764705882,
+      "rehearsal_ids": [
+        "GL247",
+        "verse145",
+        "verse514",
+        "verse577"
+      ],
+      "rehearsal_selection": "burden-weighted"
+    }
+  },
+  "loss_final": 0.1433,
+  "eval": {
+    "n": 24,
+    "dice_cervical_median": 0.4707,
+    "dice_cervical_n": 9,
+    "dice_thoracic_median": 0.6772,
+    "dice_thoracic_n": 24,
+    "dice_lumbar_median": 0.5862,
+    "dice_lumbar_n": 22,
+    "dice_sacrum_median": null,
+    "dice_sacrum_n": 0,
+    "apl_mm_median": 83087.9,
+    "apl_mm_total": 2465155.3,
+    "surface_dice_median": 0.6746,
+    "kinds": {
+      "boundary": 14,
+      "mixed": 10
+    }
+  },
+  "promotion": {
+    "promoted": false,
+    "reasons": [
+      "fails do-nothing null: APL gain -9.5%, paired 95% interval [-18.0%, -1.4%] does not exclude zero; opened cervical but at a net burden COST",
+      "forgetting gate: lumbar: 0.723 -> 0.586 (drop 0.136 > 0.05)"
+    ],
+    "evidence": {
+      "apl_gain_frac_vs_do_nothing": -0.0947,
+      "apl_gain_ci95": [
+        -0.1803,
+        -0.0143
+      ],
+      "unserved_regions": [
+        {
+          "region": "cervical",
+          "median": [
+            0.1844,
+            0.4707
+          ],
+          "n_cases": 9,
+          "mean_change_ci95": [
+            0.0358,
+            0.2956
+          ]
+        }
+      ],
+      "forgetting": {
+        "cervical": {
+          "incumbent": 0.1844,
+          "candidate": 0.4707,
+          "drop": -0.2863
+        },
+        "thoracic": {
+          "incumbent": 0.7156,
+          "candidate": 0.6772,
+          "drop": 0.0384
+        },
+        "lumbar": {
+          "incumbent": 0.7226,
+          "candidate": 0.5862,
+          "drop": 0.1364
+        }
+      }
+    }
+  },
+  "mlflow_run_id": "c75dca7363c64d868743674f37f87536",
+  "dvc": {
+    "path": "outputs/selection/s2027_burden_weighted/round4/model.pt",
+    "added": true,
+    "pushed": true
+  },
+  "seconds": 1458.1
+}
