@@ -941,6 +941,105 @@ program log as written.</p>
 </div>
 '''
 
+    # ---- Steps 9-10: who corrects, and which cases are rehearsed (W7/W17/W18, W8)
+    late_html = ""
+    w18_p, w7_p, w8_p = (REPO / "manifests" / n for n in (
+        "w18_budgeted_seed_band.json", "w7_corrector.json", "w8_selection.json"))
+    if w18_p.is_file() and w7_p.is_file():
+        w18, w7c = (json.loads(x.read_text()) for x in (w18_p, w7_p))
+        seeds = w18["seeds"]
+        arm_labels = [
+            ("oracle", "full reference (oracle)"),
+            ("W7 budget (unfixed approved)", "budgeted review, <strong>unfixed output approved as truth</strong>"),
+            ("A masked", "same review, unreviewed voxels <strong>masked from the loss</strong>"),
+            ("B region+masked", "masked + budget split <strong>per anatomical region</strong>"),
+        ]
+        arm_rows = ""
+        for key, label in arm_labels:
+            per = [w18["by_seed"][f"s{s}"][key] for s in seeds]
+            arm_rows += (
+                f"<tr><td>{label}</td>"
+                f"<td>{', '.join(str(p['promotions']) for p in per)}</td>"
+                f"<td>{', '.join(f'−{p['end_to_end_reduction']:.1%}'.replace('−0.0%', '0%') for p in per)}</td>"
+                f"<td>{', '.join(f'{p['final_candidate_cervical']:.2f}' for p in per)}</td></tr>"
+            )
+        eff = w7c["reviewer_effort_by_region"]
+        late_html = f'''
+<h2>Step 9 — Who does the correcting: the oracle was doing the work (W7, W17, W18)</h2>
+<div class="card">
+<p>Everything above learns from the <strong>full reference mask</strong> — an oracle standing
+in for a human. A real reviewer has a budget, fixes what is badly wrong, and approves the
+rest. Simulated here as: fix errors largest-first until half the case's burden is spent,
+leave anything under 5% alone. Three arms of that reviewer, each replicated across
+{len(seeds)} seeds.</p>
+</div>
+<table>
+<tr><th>what the loop trains on</th><th>promotions per seed</th><th>end-to-end per seed</th>
+<th>final candidate cervical</th></tr>
+{arm_rows}
+</table>
+<div class="card">
+<p><strong>When the model's unfixed output is approved as truth, the loop promotes nothing</strong>
+— replicated {len(seeds)} of {len(seeds)}, and the pre-registered kill condition for that row was
+met. The mechanism is visible in the reviewer's own effort: burden-ranked triage fixed
+{eff["cervical"]["fixed_frac"]:.0%} of cervical levels against {eff["lumbar"]["fixed_frac"]:.0%}
+of lumbar, so the model's empty cervical output — approved as background — taught its blind
+spot back to it.</p>
+<p><strong>Masking the unreviewed voxels is a partial repair at best.</strong> Three claims
+were written down before the extra seeds ran, to be made only if all {len(seeds)} agreed. One
+held (the row above). Two did not: the poison was <em>not</em> refused at the door in every
+arm — under a thinned signal the rate test of Step 8 attributed a real poison to the model
+and admitted it (p = 0.0499 against α = 0.01), and the promotion gate refused every
+candidate trained on it. That false negative is pinned as a <strong>known defect</strong> in
+the test suite and deliberately <em>not</em> re-tuned: the known false positive sits at
+p = 0.25 and this false negative at p = 0.05, too close to separate on two points.</p>
+<p><strong>For anyone building this for real:</strong> a partial correction is not a label.
+What the reviewer did not touch must reach training as <em>unknown</em>, not as
+<em>approved</em>; and a reviewer who triages by size will starve small structures unless the
+budget is allocated to prevent it.</p>
+</div>
+'''
+        if w8_p.is_file():
+            w8 = json.loads(w8_p.read_text())
+            rows = w8["rows"]
+            _mn = lambda s: s.replace("-", "−")  # match the report's typographic minus
+            ep = ", ".join(_mn(f"{r['deployed_endpoint']['weighted_gain_over_uniform']:+.1%}") for r in rows)
+            r1g = ", ".join(_mn(f"{r['round1_same_incumbent']['weighted_gain_over_uniform']:+.1%}") for r in rows)
+            n_r1_sig = sum(r["round1_same_incumbent"]["excludes_zero"] for r in rows)
+            cerv_w = ", ".join(f"{r['weighted']['dice']['cervical']:.2f}" for r in rows)
+            cerv_u = ", ".join(f"{r['uniform']['dice']['cervical']:.2f}" for r in rows)
+            promos_u = ", ".join(str(len(r["uniform"]["promoted_rounds"])) for r in rows)
+            late_html += f'''
+<h2>Step 10 — Which cases get rehearsed: a lever that worked for one round (W8)</h2>
+<div class="card">
+<p>Rehearsal draws a quarter of each training set from cases already seen, and draws them
+uniformly. The obvious improvement is to draw the ones the current model is worst at. The
+rule was pre-registered: draw without replacement with probability proportional to the
+incumbent's own correction burden on each seen case — same N, same seeds, same gates.
+<strong>WIN</strong> required lower deployed burden in {len(rows)} of {len(rows)} seeds with the
+paired interval excluding zero in at least 2; <strong>HARMFUL</strong> required higher in
+{len(rows)} of {len(rows)}. The recorded expectation was a null.</p>
+<p><strong>Verdict: {w8["verdict"]}.</strong> Deployed burden moved {ep} (positive means the
+weighted arm deployed <em>lower</em> burden) — better in {w8["n_seeds_weighted_lower"]} of
+{len(rows)} seeds, beyond noise in {w8["n_seeds_weighted_lower_beyond_noise"]}.</p>
+<p><strong>Why, though.</strong> For one round the weighting plainly worked: judged at round 1,
+where both arms share an incumbent and the comparison is clean, it was ahead in all
+{len(rows)} seeds ({r1g}), significantly in {n_r1_sig}. Then it stopped — it promoted round 1
+and never promoted again in any seed (uniform: {promos_u}). Its later candidates were not
+idle: every weighted round-4 candidate <em>did</em> learn cervical, to Dice 0.43–0.48. Every
+one was also refused by <strong>two gates at once</strong> — they lost to the do-nothing null
+on total burden (−4.2%, −9.5%, −7.9%, the interval excluding zero in two of three seeds, so
+worse than deploying nothing rather than merely unproven) <em>and</em> regressed lumbar by
+0.09–0.14, past the forgetting tolerance of 0.05. The arm that learned the new anatomy
+fastest is the arm that never deployed it: final deployed cervical Dice {cerv_w}, against
+{cerv_u} under uniform rehearsal.</p>
+<p>Over-rehearsing the cases a model finds hardest is, mechanically, under-rehearsing
+everything else, and the cost lands on the region that was already fine. One round could not
+see that; five rounds and a forgetting gate could. <strong>A rehearsal policy measured in a
+single round is not evidence about that policy in a loop.</strong></p>
+</div>
+'''
+
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -958,25 +1057,34 @@ Updated {date.today().isoformat()} ·
 <div class="card" style="border-left: 4px solid #2a78d6;">
 <h2 style="margin-top:0">Headlines</h2>
 <ul style="margin-bottom:0">
-<li><strong>The method works:</strong> total correction burden fell
-{rounds[0]["eval"]["apl_mm_total"] / 1000:,.0f} → {rounds[-1]["eval"]["apl_mm_total"] / 1000:,.0f} m
+<li><strong>The loop works — when an oracle does the correcting:</strong> total correction
+burden fell {rounds[0]["eval"]["apl_mm_total"] / 1000:,.0f} →
+{rounds[-1]["eval"]["apl_mm_total"] / 1000:,.0f} m
 (−{(rounds[0]["eval"]["apl_mm_total"] - rounds[-1]["eval"]["apl_mm_total"]) / rounds[0]["eval"]["apl_mm_total"]:.1%})
-across the 5-round deployment; every promotion beat the do-nothing null as a point
-estimate (with intervals, and against a second null, see Step 8 — part of the round-1 gain
-is extra optimisation, not corrections).</li>
-<li><strong>Learning without forgetting:</strong> cervical Dice 0.03 → 0.54 as the world
-shifted; thoraco-lumbar held under the 25% rehearsal mix.</li>
-<li><strong>The loop defended itself:</strong> the poisoned batch was refused before any
-training (39 relabel levels, 95% consensus on +1); the counterfactual priced the save at
-+40.2% burden. First-run miss by screen v1 was caught by the promotion gate — the
-layered-null argument, played out live.</li>
-<li><strong>Audit (2026-09-13):</strong> worktree, every historical blob, and every commit
-message swept — no company names, no PHI, no data-storage references. Clean.</li>
-<li><strong>Seed band (n=3) measured:</strong> the end-to-end claims replicate — burden
-−19.3% to −26.4% across seeds, poison refused 3/3, cervical learnable 3/3. The per-round
-path varies; the gates convert that variance into refusals, at a measured cost (one clean
-batch and one near-miss candidate refused under seed 3117 — screen v3 + threshold
-recalibration are the proposed fixes).</li>
+across the 5-round deployment, replicated −19.3% to −26.4% over three seeds, with cervical
+Dice 0.03 → 0.54 and thoraco-lumbar held under the 25% rehearsal mix.</li>
+<li><strong>Under a realistic reviewer it does not (Step 9 — the headline finding):</strong>
+swap the full reference for a budgeted human who fixes the worst errors and approves the
+rest, and the loop promotes <strong>nothing</strong>, in 3 seeds of 3. Burden-ranked triage
+starves small structures, and approved-empty output teaches the blind spot back. Masking the
+unreviewed voxels is a partial repair, not a fix. <em>A partial correction is not a label.</em></li>
+<li><strong>The loop defended itself, and the defence is layered for a reason:</strong> the
+poisoned batch was refused before training (39 relabel levels, 95% consensus on +1), and the
+counterfactual priced the save at +40.2% burden. Screen v1 missed it and the promotion gate
+caught it; later, under a thinned signal, screen v3 <em>admitted</em> a real poison
+(p = 0.0499 vs α = 0.01) and the gate caught it again. Both screen defects are pinned as
+tests and the second is deliberately not re-tuned.</li>
+<li><strong>The gates were themselves wrong, twice, and were measured before being fixed</strong>
+(Step 8): a clean batch refused because the <em>model</em> was the shifted party, and a
+promotion bar of 2.0% sitting inside a training-noise spread of 5.6%. Re-judged with
+intervals, the burden gain of every cervical-arrival round is indistinguishable from zero —
+those promotions stand on an unserved-region clause resting on 9 test cases.</li>
+<li><strong>Audit — a claim this report got wrong.</strong> The 2026-09-13 sweep was reported
+here as clean. It was not: on 2026-09-18 an employer name was found in
+<code>docs/GOAL-REVIEW.md</code>, public since an earlier commit. The audit had been manual and
+nothing enforced it. It is now an executable gate — a hygiene test over the worktree
+<em>and</em> commit messages, plus a pre-commit hook — and the current tree passes. The
+string remains in public git history, which only a history rewrite would remove.</li>
 </ul>
 </div>""" if rounds and arms else ""}
 
@@ -1064,7 +1172,7 @@ Originals are never touched; poisoned copies live outside git in
 {poison["n_cases"]} cases, {sum(len(c["label_map"]) for c in poison["cases"])} labels shifted in total.</p>
 </div>
 
-{w1_html}\n{w2_html}\n{w4_html}\n{w6_html}\n{calib_html}\n<h2>What exists so far</h2>
+{w1_html}\n{w2_html}\n{w4_html}\n{w6_html}\n{calib_html}\n{late_html}\n<h2>What exists so far</h2>
 <div class="card">
 <table>
 <tr><th>Artifact</th><th>What it is</th></tr>
