@@ -137,7 +137,46 @@ the reviewer did not touch must reach training as *unknown*, not as *approved*;
 and a reviewer who triages by size will starve small structures unless the
 budget is allocated to prevent it.
 
-## 5. Limits
+## 5. Choosing *which* cases to rehearse: better in round 1, worth nothing by round 5
+
+Rehearsal draws a quarter of each training set from cases already seen, and it
+draws them uniformly. The obvious improvement is to draw the ones the current
+model is worst at. The rule was written down before the run
+(`manifests/w8_selection.json`): draw without replacement with probability
+proportional to the incumbent's own correction burden on each seen case — same
+number of cases, same seeds, same gates. **WIN** required lower deployed burden
+in 3 of 3 seeds with the paired interval excluding zero in at least 2;
+**HARMFUL** required higher in 3 of 3. The recorded expectation was a null.
+
+It is a null. Deployed burden moved **−7.0%, −6.0%, +3.2%** (seeds 1337, 2027,
+3117; positive means the weighted arm deployed *lower* burden) — better in 1 of
+3 seeds, beyond noise in none.
+
+The instructive part is *why*, because for one round the weighting plainly
+worked. Judged at round 1, where both arms start from the same model and the
+comparison is clean, the weighted arm was ahead in all three seeds — **+11.0%
+[+6.8%, +15.4%], +2.2%, +5.1%** — significantly so in one. Then it stopped. It
+promoted round 1 and never promoted again in any seed (uniform: 3, 2, 2). Its
+later candidates were not idle: every weighted round-4 candidate *did* learn
+cervical anatomy, to Dice 0.43–0.48. Every one was also refused, by two gates
+at once. They lost to the do-nothing null on total burden — **−4.2%, −9.5%,
+−7.9%**, with the interval excluding zero in two of the three seeds, so worse
+than deploying nothing rather than merely unproven — and they regressed lumbar
+by **0.09–0.14**, past the forgetting tolerance of 0.05. Learning the new
+region did not pay for what it cost elsewhere: in the one seed where the
+unserved-region clause did open on cervical, the gate recorded that it opened
+"at a net burden cost", and it did not rescue the candidate. The arm that
+learned the new anatomy fastest is the arm that never deployed it — final
+deployed cervical Dice **0.13, 0.18, 0.21**, against **0.54, 0.49, 0.58**
+under uniform rehearsal. The poison was still refused in 3 of 3 seeds.
+
+Over-rehearsing the cases a model finds hardest is, mechanically,
+under-rehearsing everything else, and the cost lands on the region that was
+already fine. One round could not see that; five rounds and a forgetting gate
+could. **A rehearsal policy measured in a single round is not evidence about
+that policy in a loop.**
+
+## 6. Limits
 
 - **Scale.** Small network, 3 mm grid, 24 test cases. Effect sizes illustrate a
   method; they do not estimate anything.
@@ -148,10 +187,11 @@ budget is allocated to prevent it.
   had the interval treatment the promotion gate received.
 - **Rehearsal** was shown to help by 5.2% burden in one gentle round; the
   catastrophic-forgetting case is cited from the literature, not reproduced.
+  Only one alternative to uniform rehearsal was tried (§5), at one draw size.
 - **Simulated reviewers** are simulations. No human corrected anything in this
   repository.
 
-## 6. Where to look
+## 7. Where to look
 
 `docs/build-report.html` — the narrated build, figures, and the corrections in
 context (Step 8). `docs/method-transfer-brief.md` — each control as an experiment
