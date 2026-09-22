@@ -33,9 +33,11 @@ them. Each round:
    (systematically mis-labeled references are refused whole), and a
    forgetting gate;
 4. the model **retrains** with a declared ~25% rehearsal mix;
-5. the candidate is **promoted only if it beats two nulls** on a sequestered
-   test set: the do-nothing incumbent, and (when trained) a matched control.
-   A do-nothing candidate must fail — that degeneracy check is a test.
+5. the candidate is **promoted only if it beats two trained nulls** on a
+   sequestered test set — the do-nothing incumbent and a matched
+   more-training control — judged on a paired bootstrap interval rather than
+   a fixed bar. A do-nothing candidate must fail; that degeneracy check is a
+   test.
 
 ## What actually happened (the unscripted part)
 
@@ -65,6 +67,24 @@ a regression test.
 Honest results are kept in: the no-rehearsal ablation at round 4 shows **no
 regional collapse** at this gentle scale — rehearsal's measured value here is
 a 5.5% APL margin, and the report says exactly that instead of dramatizing.
+The gains above are point estimates. Re-judged later with intervals, the
+round-4 burden gain does not exclude zero in any seed; those promotions stand
+on a separate unserved-region clause, and `RESULTS.md` §3 says so.
+
+## The finding that matters most
+
+Every number above learns from the **full reference mask** — an oracle
+standing in for a human correction. Replace it with a reviewer who has a
+budget, fixes what is badly wrong, and approves the rest, and **the loop
+promotes nothing at all**, in three seeds of three. Burden-ranked triage
+fixed 8% of cervical levels against 66% of lumbar, and the model's empty
+cervical output — approved as background — taught the blind spot back to it.
+Masking the unreviewed voxels out of the loss is a partial repair, not a fix.
+
+*A partial correction is not a label.* What the reviewer did not touch has to
+reach training as **unknown**, not as **approved**. That is the transferable
+result here, and it is a negative one: see `RESULTS.md` §4 and the report's
+Step 9.
 
 ## Quickstart
 
@@ -73,7 +93,7 @@ scripts/download_verse.sh                 # VerSe 2020 from the authors' mirrors
 pip install -e .[train,dev]
 python scripts/build_partition.py         # seeded stream design (test/pool/batches)
 python scripts/build_poisoned_batch.py    # the audited enumeration poison
-pytest -q                                 # 28 tests, incl. every refusal firing
+pytest -q                                 # 74 pass + 1 xfail: a pinned known defect
 scripts/w4_chain2.sh                      # the full 5-round run (one command)
 python tools/report/build_report.py       # regenerate docs/build-report.html
 mlflow ui --backend-store-uri mlruns      # every training curve
